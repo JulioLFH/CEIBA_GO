@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load static %}
+{% block titulo %}Crear cuenta{% endblock %}
+{% block contenido %}
+<div class="login-card" style="max-width:680px">
+  <img src="{% static 'img/ceiba-isotipo.svg' %}" alt="" class="iso">
+  <h1 style="text-align:center">Crea tu cuenta</h1>
+  <p class="muted small">Como persona (DNI, boleta) o como empresa (RUC, factura y opción de línea de crédito aprobada por Ceiba GO).</p>
+  <form method="post">{% csrf_token %}
+    <div class="campo fila">{% for r in form.tipo %}<label class="metodo" style="flex:1;margin:0">{{ r.tag }} {{ r.choice_label }}</label>{% endfor %}</div>
+    <div class="grid g2">
+      {% for f in form %}{% if f.name != "tipo" %}
+        <div class="campo"><label for="{{ f.id_for_label }}">{{ f.label }}</label>{{ f }}{% for e in f.errors %}<div class="small" style="color:var(--rojo)">{{ e }}</div>{% endfor %}</div>
+      {% endif %}{% endfor %}
+    </div>
+    {% for e in form.non_field_errors %}<div class="msg error">{{ e }}</div>{% endfor %}
+    <button class="btn">Crear cuenta</button>
+  </form>
+</div>
+{% endblock %}

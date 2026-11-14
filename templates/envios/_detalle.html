@@ -1,0 +1,94 @@
+{% load ceiba humanize %}
+<div class="grid g2">
+  <div class="card">
+    <h2>Ruta puerta a puerta</h2>
+    <div class="ruta">
+      <div class="pt"><span class="muted small">Dirección inicial · recojo</span><br><b>{{ p.origen_direccion }}</b><br>
+        {{ p.origen_distrito }}, {{ p.get_origen_departamento_display }}{% if p.origen_referencia %}<br><span class="small muted">Ref.: {{ p.origen_referencia }}</span>{% endif %}
+        <br><span class="small">{{ p.origen_contacto }} · {{ p.origen_telefono }}</span></div>
+      <div class="fl">➜</div>
+      <div class="pt"><span class="muted small">Dirección final · entrega</span><br><b>{{ p.destino_direccion }}</b><br>
+        {{ p.destino_distrito }}, {{ p.get_destino_departamento_display }}{% if p.destino_referencia %}<br><span class="small muted">Ref.: {{ p.destino_referencia }}</span>{% endif %}
+        <br><span class="small">{{ p.destinatario_nombre }} ({{ p.destinatario_documento }}) · {{ p.destinatario_telefono }}</span></div>
+    </div>
+    {% if p.origen_lat or p.destino_lat %}
+    <div class="mapa mapa-ver" id="mapa-pedido"></div>
+    <div class="fila" style="gap:8px;flex-wrap:wrap;margin-top:8px">
+      {% if p.origen_lat %}<a class="btn sec chico" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination={{ p.origen_lat|stringformat:'s' }},{{ p.origen_lng|stringformat:'s' }}">🧭 Ir al recojo (A)</a>{% endif %}
+      {% if p.destino_lat %}<a class="btn sec chico" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination={{ p.destino_lat|stringformat:'s' }},{{ p.destino_lng|stringformat:'s' }}">🧭 Ir a la entrega (B)</a>{% endif %}
+    </div>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script src="/static/js/mapa.js?v=3"></script>
+    <script>CeibaMapa.ver(document.getElementById("mapa-pedido"), {
+      origen: {% if p.origen_lat %}[{{ p.origen_lat|stringformat:'s' }}, {{ p.origen_lng|stringformat:'s' }}]{% else %}null{% endif %},
+      destino: {% if p.destino_lat %}[{{ p.destino_lat|stringformat:'s' }}, {{ p.destino_lng|stringformat:'s' }}]{% else %}null{% endif %}});</script>
+    {% else %}<p class="small muted">Este envío se creó antes de marcar los puntos en el mapa.</p>{% endif %}
+    <h3 style="margin-top:16px">Paquetes</h3>
+    <div class="tabla"><table>
+      <tr><th>Descripción</th><th>Cant.</th><th>Peso u.</th><th>Medidas (cm)</th><th>Vol. m³</th><th>Valor decl.</th></tr>
+      {% for q in p.paquetes.all %}
+      <tr><td>{{ q.descripcion }}{% if q.fragil %} <span class="chip naranja">Frágil</span>{% endif %}</td><td>{{ q.cantidad }}</td>
+        <td>{{ q.peso_kg }} kg</td><td>{{ q.largo_cm|floatformat:0 }}×{{ q.ancho_cm|floatformat:0 }}×{{ q.alto_cm|floatformat:0 }}</td>
+        <td>{{ q.volumen_m3 }}</td><td>{{ q.valor_declarado|dinero:p.simbolo }}</td></tr>
+      {% endfor %}
+    </table></div>
+    <p class="small muted">Peso real {{ p.peso_real_kg }} kg · volumen {{ p.volumen_m3 }} m³ · <b>peso facturable {{ p.peso_facturable_kg }} kg</b> · entrega estimada en {{ p.dias_estimados }} día{{ p.dias_estimados|pluralize }}</p>
+  </div>
+
+  <div class="card">
+    <div class="fila entre"><h2>Importe</h2><span class="chip {{ p.estado|color_estado }}">{{ p.get_estado_display }}</span></div>
+    <table>
+      <tr><td>Flete</td><td class="right">{{ p.flete|dinero:p.simbolo }}</td></tr>
+      <tr><td>Seguro (valor declarado)</td><td class="right">{{ p.seguro|dinero:p.simbolo }}</td></tr>
+      <tr><td>Recargos (frágil)</td><td class="right">{{ p.recargos|dinero:p.simbolo }}</td></tr>
+      <tr><td>Valor de venta</td><td class="right">{{ p.subtotal|dinero:p.simbolo }}</td></tr>
+      <tr><td>IGV</td><td class="right">{{ p.igv|dinero:p.simbolo }}</td></tr>
+      <tr><td><b>Total</b></td><td class="right"><b>{{ p.total|dinero:p.simbolo }}</b>{% if p.moneda == "USD" %}<br><span class="small muted">T.C. {{ p.tipo_cambio }} · S/ {{ p.total_pen }}</span>{% endif %}</td></tr>
+    </table>
+    {% for pg in pagos %}<p class="small">Pago: <b>{{ pg.get_metodo_display }}</b> · {{ pg.get_estado_display }}{% if pg.referencia %} · op. {{ pg.referencia }}{% endif %}{% if pg.vence and pg.estado == "por_cobrar" %} · vence {{ pg.vence|date:"d/m/Y" }}{% endif %}</p>{% endfor %}
+    <h3 style="margin-top:12px">Documentos electrónicos</h3>
+    {% if p.comprobante_vigente %}
+      <p><a href="{% url 'comprobante' p.codigo %}" target="_blank">{{ p.comprobante.get_tipo_display }} {{ p.comprobante.numero_completo }}</a>
+      <span class="chip {% if p.comprobante.sunat_estado == 'baja' %}rojo{% else %}verde{% endif %}">{{ p.comprobante.get_sunat_estado_display }}</span></p>
+    {% endif %}
+    {% for g in guias %}
+      <p><a href="{% url 'guia' p.codigo g.tipo %}" target="_blank">{{ g.get_tipo_display }} {{ g.numero_completo }}</a>
+      <span class="chip {% if g.sunat_estado == 'aceptada' %}verde{% else %}rojo{% endif %}">{{ g.get_sunat_estado_display }}</span></p>
+    {% empty %}<p class="vacio">Se emiten al pagar.</p>{% endfor %}
+    <h3 style="margin-top:12px">Seguimiento para el destinatario</h3>
+    <div class="fila"><code>{{ p.codigo }}</code><button type="button" class="btn sec chico" data-copiar="{{ seguimiento_url }}">Copiar link</button></div>
+  </div>
+</div>
+
+<div class="grid g2">
+  <div class="card">
+    <h2>Tramos</h2>
+    {% for t in tramos %}
+      <div class="lado" style="margin-bottom:12px">
+        <div class="fila entre"><b>{{ t.orden }}. {{ t.get_tipo_display }}</b><span class="chip {% if t.estado == 'completado' %}verde{% elif t.estado == 'fallido' %}rojo{% elif t.estado == 'en_curso' %}naranja{% elif t.estado == 'asignado' %}azul{% endif %}">{{ t.get_estado_display }}</span></div>
+        <div class="small muted">
+          {% if t.agente %}Agente: {{ t.agente.nombre }}{% elif t.transportista %}Transporte: {{ t.transportista.razon_social }}{% else %}Sin asignar{% endif %}
+          {% if t.guia %} · Guía {{ t.guia.tipo }} {{ t.guia.numero_completo }}{% else %} · sin guía{% endif %}
+          {% if t.registro %} · {{ t.get_registro_display }}{% endif %}
+          {% if t.fin %} · {{ t.fin|date:"d/m H:i" }}{% endif %}
+        </div>
+        {% if t.almacenado %}<div class="small">Almacenado{% if t.ubicacion_almacen %} en {{ t.ubicacion_almacen }}{% endif %}</div>{% endif %}
+        {% if t.observaciones %}<div class="small">{{ t.observaciones }}</div>{% endif %}
+        {% if t.receptor_nombre %}<div class="small">Recibió: {{ t.receptor_nombre }} ({{ t.receptor_documento }})</div>{% endif %}
+        <div class="fila" style="margin-top:6px">
+          {% if t.evidencia_foto %}<a href="{{ t.evidencia_foto.url }}" target="_blank"><img src="{{ t.evidencia_foto.url }}" alt="evidencia" style="height:70px;border-radius:8px;border:1px solid var(--linea)"></a>{% endif %}
+          {% if t.firma %}<img src="{{ t.firma }}" alt="firma" style="height:70px;border-radius:8px;border:1px solid var(--linea);background:#fff">{% endif %}
+        </div>
+      </div>
+    {% empty %}<p class="vacio">Los tramos se crean al pagar.</p>{% endfor %}
+  </div>
+  <div class="card">
+    <h2>Trazabilidad</h2>
+    <ul class="eventos">
+      {% for e in eventos %}
+        <li><b>{{ e.get_estado_display }}</b> — {{ e.descripcion }}<small>{{ e.timestamp|date:"d/m/Y H:i" }}{% if e.ubicacion %} · {{ e.ubicacion }}{% endif %}{% if e.actor %} · {{ e.actor }}{% endif %}</small></li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>

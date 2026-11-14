@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load static %}
+{% block titulo %}Envíos puerta a puerta{% endblock %}
+{% block contenido %}
+<section class="hero">
+  <img src="{% static 'img/ceiba-negativo.svg' %}" alt="" class="hero-iso">
+  <h1>Envía materiales de tu dirección a la dirección final</h1>
+  <p>Cotiza en segundos por peso y volumen, paga con Yape, Plin, billetera, tarjeta o crédito empresa, y sigue tu envío con guía electrónica SUNAT en cada tramo.</p>
+  <form action="{% url 'seguimiento' %}"><input name="codigo" placeholder="Código de seguimiento, ej. CG-7K3P9QX" required><button class="btn">Rastrear</button></form>
+  <div class="fila" style="margin-top:16px">
+    {% if user.is_authenticated %}<a class="btn" href="{% url 'inicio' %}">Ir a mi panel</a>
+    {% else %}<a class="btn" href="{% url 'registro' %}">Crear cuenta</a><a class="btn sec" style="background:transparent;color:#fff;border-color:rgba(255,255,255,.5)" href="{% url 'login' %}">Ingresar</a>{% endif %}
+  </div>
+</section>
+<section class="escena card">
+  <div id="escena3d" role="img" aria-label="Animación: un camión de Ceiba GO recoge un paquete en la Casa A y lo entrega en la Casa B"></div>
+  <div class="escena-msg ver">Recogemos en la puerta de la Casa A</div>
+  <div class="escena-chips">
+    <span>🛡️ Traslado seguro</span><span>⚡ Envío rápido</span><span>📄 Guía electrónica SUNAT</span><span>✍️ Prueba de entrega</span>
+  </div>
+</section>
+<div class="grid g4">
+  <div class="card"><h3>1 · Cotiza</h3><p class="muted small">Origen → destino y paquetes. El motor cobra por el mayor entre peso real y volumétrico.</p></div>
+  <div class="card"><h3>2 · Paga</h3><p class="muted small">Boleta o factura electrónica y GRE Remitente al instante. Crédito para empresas con RUC.</p></div>
+  <div class="card"><h3>3 · Recojo y traslado</h3><p class="muted small">Un agente recoge en tu dirección escaneando el QR; el transporte interprovincial viaja con GRE Transportista.</p></div>
+  <div class="card"><h3>4 · Entrega</h3><p class="muted small">Entrega en la dirección final con prueba de entrega (firma y foto). El destinatario sigue todo sin cuenta.</p></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="{% static 'js/escena3d.js' %}?v=5"></script>
+{% endblock %}

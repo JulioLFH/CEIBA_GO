@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load ceiba %}
+{% block titulo %}Pedidos{% endblock %}
+{% block contenido %}
+<h1>Pedidos</h1>
+<form class="card fila" method="get">
+  <input name="q" value="{{ q }}" placeholder="Código, cliente, destinatario o departamento" style="flex:2">
+  <select name="estado" style="flex:1"><option value="">Todos los estados</option>{% for c, n in ESTADOS %}<option value="{{ c }}" {% if c == estado %}selected{% endif %}>{{ n }}</option>{% endfor %}</select>
+  <button class="btn">Filtrar</button>
+</form>
+<div class="card tabla"><table>
+  <tr><th>Código</th><th>Cliente</th><th>Ruta</th><th>Estado</th><th class="right">Total</th><th>Creado</th></tr>
+  {% for p in pedidos %}<tr><td><a href="{% url 'ops_pedido' p.codigo %}"><b>{{ p.codigo }}</b></a></td><td>{{ p.cuenta.nombre }}</td>
+    <td>{{ p.get_origen_departamento_display }} → {{ p.get_destino_departamento_display }}</td><td><span class="chip {{ p.estado|color_estado }}">{{ p.get_estado_display }}</span></td>
+    <td class="right">{{ p.total|dinero:p.simbolo }}</td><td class="small muted">{{ p.creado|date:"d/m/Y H:i" }}</td></tr>
+  {% empty %}<tr><td colspan="6" class="vacio">Sin resultados.</td></tr>{% endfor %}
+</table></div>
+{% endblock %}

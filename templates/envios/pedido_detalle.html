@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block titulo %}{{ p.codigo }}{% endblock %}
+{% block contenido %}
+<div class="fila entre"><h1>Envío {{ p.codigo }}</h1>{% if p.estado == "creado" %}<a class="btn" href="{% url 'cliente_pagar' p.codigo %}">Pagar</a>{% endif %}</div>
+<div class="card">{% include "envios/_pasos.html" %}</div>
+{% include "envios/_detalle.html" %}
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load ceiba %}
+{% block titulo %}Seguimiento {{ codigo }}{% endblock %}
+{% block contenido %}
+<div class="card">
+  <h1>Seguimiento de envío</h1>
+  <form class="fila" method="get" action="{% url 'seguimiento' %}"><input name="codigo" value="{{ codigo }}" placeholder="Código, ej. CG-7K3P9QX" style="max-width:320px" required><button class="btn">Buscar</button></form>
+  <p class="small muted">El destinatario puede seguir su envío con el link o el código, sin crear cuenta.</p>
+</div>
+{% if pedido %}
+<div class="card">
+  <div class="fila entre"><h2>{{ pedido.codigo }}</h2><span class="chip {{ pedido.estado|color_estado }}">{{ pedido.get_estado_display }}</span></div>
+  <p class="muted">{{ pedido.origen_distrito }}, {{ pedido.get_origen_departamento_display }} ➜ {{ pedido.destino_distrito }}, {{ pedido.get_destino_departamento_display }}
+   · {{ pedido.total_bultos }} bulto{{ pedido.total_bultos|pluralize }} · para {{ pedido.destinatario_nombre }}</p>
+  {% include "envios/_pasos.html" with p=pedido %}
+</div>
+<div class="card">
+  <h2>Historial</h2>
+  <ul class="eventos">{% for e in eventos %}<li><b>{{ e.get_estado_display }}</b> — {{ e.descripcion }}<small>{{ e.timestamp|date:"d/m/Y H:i" }}{% if e.ubicacion %} · {{ e.ubicacion }}{% endif %}</small></li>{% endfor %}</ul>
+</div>
+{% endif %}
+{% endblock %}

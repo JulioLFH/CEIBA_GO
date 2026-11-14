@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load ceiba static %}
+{% block titulo %}{{ c.get_tipo_display }} {{ c.numero_completo }}{% endblock %}
+{% block contenido %}
+<div class="noprint fila" style="justify-content:flex-end;margin-bottom:10px"><button class="btn sec" onclick="print()">Imprimir</button></div>
+<div class="doc">
+  <div class="cab">
+    <div><img src="{% static 'img/ceiba-isotipo.svg' %}" alt="" class="logo-doc"><h2>{{ cfg.empresa_razon }}</h2><div class="small">{{ cfg.empresa_direccion }}</div><div class="small">Servicio de envío de materiales · Ceiba GO</div></div>
+    <div class="num">RUC {{ cfg.empresa_ruc }}<br>{{ c.get_tipo_display|upper }}<br>{{ c.numero_completo }}</div>
+  </div>
+  {% if c.sunat_estado == "baja" %}<div class="msg error">Comprobante ANULADO · comunicada la baja a SUNAT</div>{% endif %}
+  <table>
+    <tr><td><b>Cliente</b></td><td>{{ c.cliente_nombre }}</td><td><b>{% if c.tipo == "factura" %}RUC{% else %}DNI{% endif %}</b></td><td>{{ c.cliente_documento }}</td></tr>
+    <tr><td><b>Fecha de emisión</b></td><td>{{ c.emitido|date:"d/m/Y H:i" }}</td><td><b>Moneda</b></td><td>{{ c.get_moneda_display }}{% if c.moneda == "USD" %} · T.C. {{ c.tipo_cambio }}{% endif %}</td></tr>
+    <tr><td><b>Forma de pago</b></td><td>{{ c.forma_pago|capfirst }}</td><td><b>Guía relacionada</b></td><td>{% for g in p.guias.all %}{{ g.numero_completo }} {% endfor %}</td></tr>
+  </table>
+  <table style="margin-top:14px">
+    <tr><th>Cant.</th><th>Descripción</th><th class="right">Valor</th></tr>
+    <tr><td>1</td><td>Servicio de envío {{ p.codigo }}: {{ p.origen_distrito }} ({{ p.get_origen_departamento_display }}) → {{ p.destino_distrito }} ({{ p.get_destino_departamento_display }}), {{ p.total_bultos }} bulto(s), {{ p.peso_facturable_kg }} kg facturables</td><td class="right">{{ p.flete|dinero:p.simbolo }}</td></tr>
+    {% if p.seguro %}<tr><td>1</td><td>Seguro sobre valor declarado</td><td class="right">{{ p.seguro|dinero:p.simbolo }}</td></tr>{% endif %}
+    {% if p.recargos %}<tr><td>1</td><td>Recargo por manipulación de bultos frágiles</td><td class="right">{{ p.recargos|dinero:p.simbolo }}</td></tr>{% endif %}
+    <tr><td></td><td class="right">Op. gravada</td><td class="right">{{ c.subtotal|dinero:p.simbolo }}</td></tr>
+    <tr><td></td><td class="right">IGV</td><td class="right">{{ c.igv|dinero:p.simbolo }}</td></tr>
+    <tr><td></td><td class="right"><b>Importe total</b></td><td class="right"><b>{{ c.total|dinero:p.simbolo }}</b></td></tr>
+  </table>
+  <div class="fila" style="margin-top:16px;align-items:flex-start">
+    <div class="qrbox">{% qr_svg c.qr_texto 110 %}</div>
+    <div class="small muted">Representación impresa del comprobante electrónico.<br>Hash: {{ c.hash_cpe }}<br>Estado SUNAT: {{ c.get_sunat_estado_display }}</div>
+  </div>
+</div>
+{% endblock %}

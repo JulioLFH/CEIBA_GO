@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block titulo %}Escanear QR{% endblock %}
+{% block head %}<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" defer></script>{% endblock %}
+{% block contenido %}
+<div class="card" style="max-width:640px;margin:auto">
+  <h1>Escanear guía</h1>
+  <p class="muted small">Escanee el QR de la GRE Remitente o Transportista. Lo llevamos al pedido para registrar el movimiento sin digitar.</p>
+  <form method="post">{% csrf_token %}
+    {% include "envios/_lector.html" with destino="qr_scan" enviar=1 %}
+    <button class="btn" style="margin-top:12px">Buscar pedido</button>
+  </form>
+</div>
+{% endblock %}

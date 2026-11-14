@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load ceiba %}
+{% block titulo %}Mis envíos{% endblock %}
+{% block contenido %}
+<div class="fila entre"><h1>Hola, {{ cuenta.nombre }}</h1><a class="btn" href="{% url 'cliente_nuevo' %}">+ Nuevo envío</a></div>
+<div class="grid g3">
+  <div class="card kpi"><b>{{ activos.count }}</b><span>Envíos en curso</span></div>
+  <div class="card kpi"><b>{{ cuenta.get_tipo_display }}</b><span>{{ cuenta.documento }} · {% if cuenta.es_empresa %}factura electrónica{% else %}boleta electrónica{% endif %}</span></div>
+  <div class="card kpi">{% if cuenta.es_empresa %}<b>{{ cuenta.credito_disponible|dinero }}</b><span>Crédito disponible de {{ cuenta.linea_credito|dinero }}</span>{% else %}<b>Yape · Plin · Tarjeta</b><span>Medios de pago</span>{% endif %}</div>
+</div>
+<div class="card">
+  <h2>En curso</h2>
+  <div class="tabla"><table>
+    <tr><th>Código</th><th>Ruta</th><th>Destinatario</th><th>Estado</th><th class="right">Total</th><th></th></tr>
+    {% for p in activos %}
+      <tr><td><a href="{% url 'cliente_pedido' p.codigo %}"><b>{{ p.codigo }}</b></a><br><span class="small muted">{{ p.creado|date:"d/m/Y H:i" }}</span></td>
+        <td>{{ p.get_origen_departamento_display }} ➜ {{ p.get_destino_departamento_display }}</td><td>{{ p.destinatario_nombre }}</td>
+        <td><span class="chip {{ p.estado|color_estado }}">{{ p.get_estado_display }}</span></td><td class="right">{{ p.total|dinero:p.simbolo }}</td>
+        <td>{% if p.estado == "creado" %}<a class="btn chico" href="{% url 'cliente_pagar' p.codigo %}">Pagar</a>{% else %}<a class="btn sec chico" href="{% url 'cliente_pedido' p.codigo %}">Ver</a>{% endif %}</td></tr>
+    {% empty %}<tr><td colspan="6" class="vacio">No tienes envíos en curso. <a href="{% url 'cliente_nuevo' %}">Arma tu primer envío</a>.</td></tr>{% endfor %}
+  </table></div>
+</div>
+{% if historial %}
+<div class="card"><h2>Historial</h2><div class="tabla"><table>
+  {% for p in historial %}<tr><td><a href="{% url 'cliente_pedido' p.codigo %}">{{ p.codigo }}</a></td><td>{{ p.get_origen_departamento_display }} ➜ {{ p.get_destino_departamento_display }}</td>
+  <td><span class="chip {{ p.estado|color_estado }}">{{ p.get_estado_display }}</span></td><td class="right">{{ p.total|dinero:p.simbolo }}</td></tr>{% endfor %}
+</table></div></div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block titulo %}Ceiba ERP{% endblock %}
+{% block contenido %}
+<div class="fila entre"><h1>Ceiba GO ↔ Ceiba ERP</h1>
+  <form method="post">{% csrf_token %}<button class="btn">⟳ Sincronizar ahora</button></form></div>
+<div class="grid g4">
+  <div class="card kpi"><b>{{ resumen.pendiente|default:0 }}</b><span>Pendientes</span></div>
+  <div class="card kpi"><b>{{ resumen.error|default:0 }}</b><span>Con error (se reintentan)</span></div>
+  <div class="card kpi"><b>{{ resumen.enviado|default:0 }}</b><span>Enviados</span></div>
+  <div class="card kpi"><b>{% if cfg.erp_url %}Conectado{% else %}Independiente{% endif %}</b><span>{{ cfg.erp_url|default:"Sin URL: guarda su data y sincroniza al reconectar" }}</span></div>
+</div>
+<p class="small muted">Ceiba GO carga al ERP: venta (comprobante), guías GRE, cuenta por cobrar, movimiento de almacén, centro de costo del flete, cobranza, bajas y la conciliación de cierre. Configure la URL y el token en <a href="/admin/envios/configuracion/1/change/">Configuración</a>. Endpoint: <code>POST {URL}/api/ceibago/&lt;tipo&gt;/</code></p>
+<div class="card"><form class="fila" method="get"><select name="estado" style="max-width:240px"><option value="">Todos</option><option value="pendiente" {% if estado == "pendiente" %}selected{% endif %}>Pendientes</option><option value="error" {% if estado == "error" %}selected{% endif %}>Con error</option><option value="enviado" {% if estado == "enviado" %}selected{% endif %}>Enviados</option></select><button class="btn sec">Filtrar</button></form>
+<div class="tabla"><table>
+  <tr><th>Pedido</th><th>Tipo</th><th>Estado</th><th>Intentos</th><th>Creado</th><th>Respuesta / datos</th></tr>
+  {% for s in items %}<tr><td>{% if s.pedido %}<a href="{% url 'ops_pedido' s.pedido.codigo %}">{{ s.pedido.codigo }}</a>{% endif %}</td><td>{{ s.get_tipo_display }}</td>
+  <td><span class="chip {% if s.estado == 'enviado' %}verde{% elif s.estado == 'error' %}rojo{% else %}ambar{% endif %}">{{ s.get_estado_display }}</span></td><td>{{ s.intentos }}</td><td class="small">{{ s.creado|date:"d/m H:i" }}</td>
+  <td><details><summary class="small">ver</summary><pre class="small" style="white-space:pre-wrap">{{ s.payload }}</pre>{% if s.respuesta %}<div class="small muted">{{ s.respuesta }}</div>{% endif %}</details></td></tr>
+  {% empty %}<tr><td colspan="6" class="vacio">Sin registros.</td></tr>{% endfor %}
+</table></div></div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load static %}
+{% block titulo %}Ingresar{% endblock %}
+{% block contenido %}
+<div class="login-card">
+  <img src="{% static 'img/ceiba-isotipo.svg' %}" alt="" class="iso">
+  <div class="nombre">ceiba<span>GO</span></div>
+  <div class="modulos">Clientes · Agentes · Transporte · Operaciones</div>
+  {% if form.errors %}<div class="msg error">Usuario o contraseña incorrectos.</div>{% endif %}
+  <form method="post">{% csrf_token %}
+    <div class="campo"><label for="id_username">Usuario</label><input id="id_username" name="username" autofocus required></div>
+    <div class="campo" style="margin-bottom:1.25rem"><label for="id_password">Contraseña</label><input id="id_password" type="password" name="password" required></div>
+    <input type="hidden" name="next" value="{{ next }}">
+    <button class="btn full" style="padding:.75rem">Ingresar</button>
+  </form>
+  <p class="small" style="margin-top:14px;text-align:center">¿No tienes cuenta? <a href="{% url 'registro' %}">Crea tu cuenta como persona o empresa</a></p>
+  <div class="lema">Envíos de materiales de la dirección inicial a la final</div>
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+{# include con: destino (id del input), valor, etiqueta, enviar #}
+<div class="lector" data-destino="{{ destino }}" {% if enviar %}data-enviar="1"{% endif %}>
+  <label for="{{ destino }}">{{ etiqueta|default:"QR de la guía electrónica" }}</label>
+  <input id="{{ destino }}" name="qr" value="{{ valor|default:'' }}" placeholder="Escanee el QR o digite el N° de guía (T001-00000001)" required>
+  <div class="fila" style="margin-top:8px">
+    <button type="button" class="btn sec chico" data-camara>📷 Escanear con cámara</button>
+    <label class="btn sec chico" style="margin:0">🖼 Leer desde foto<input type="file" accept="image/*" capture="environment" data-foto hidden></label>
+    <span class="estado small muted"></span>
+  </div>
+  <div class="camara" style="margin-top:8px"></div>
+</div>

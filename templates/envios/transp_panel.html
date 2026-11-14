@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block titulo %}Traslados{% endblock %}
+{% block head %}<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" defer></script>{% endblock %}
+{% block contenido %}
+<h1>{{ t.razon_social }}</h1>
+<p class="muted">RUC {{ t.ruc }} · {% if t.tiene_api %}integrado por API{% else %}registro manual / QR{% endif %}</p>
+<div class="card" style="border-color:var(--morado)">
+  <h2>Paso 10 · QR en ruta (punto de control)</h2>
+  <form method="post">{% csrf_token %}
+    <div class="grid g2">
+      <div class="campo"><label>Pedido</label><select name="codigo" required>{% for p in en_ruta %}<option value="{{ p.codigo }}" {% if p.codigo == sel %}selected{% endif %}>{{ p.codigo }} · {{ p.get_origen_departamento_display }} → {{ p.get_destino_departamento_display }}</option>{% empty %}<option value="">Sin traslados en curso</option>{% endfor %}</select></div>
+      <div class="campo"><label>Ubicación</label><input name="ubicacion" placeholder="Ej.: Terminal Nazca, km 450" required></div>
+    </div>
+    {% include "envios/_lector.html" with destino="qr_ruta" valor=qr etiqueta="QR de la GRE Transportista" %}
+    <button class="btn" style="margin-top:12px">Registrar punto de control</button>
+  </form>
+</div>
+<div class="card"><h2>En tránsito ({{ en_ruta.count }})</h2><div class="tabla"><table>
+  <tr><th>Pedido</th><th>Ruta</th><th>Bultos</th><th>Guía</th></tr>
+  {% for p in en_ruta %}<tr><td><b>{{ p.codigo }}</b></td><td>{{ p.origen_distrito }}, {{ p.get_origen_departamento_display }} → {{ p.destino_distrito }}, {{ p.get_destino_departamento_display }}</td><td>{{ p.total_bultos }} · {{ p.peso_real_kg }} kg</td>
+  <td>{% with g=p.guias.all %}{% for x in g %}{% if x.tipo == "GRE-T" %}<a href="{% url 'guia' p.codigo 'GRE-T' %}" target="_blank">{{ x.numero_completo }}</a>{% endif %}{% endfor %}{% endwith %}</td></tr>
+  {% empty %}<tr><td colspan="4" class="vacio">Sin traslados en curso.</td></tr>{% endfor %}</table></div></div>
+<div class="card"><h2>Completados</h2><table>{% for p in hechos %}<tr><td>{{ p.codigo }}</td><td>{{ p.get_estado_display }}</td></tr>{% empty %}<tr><td class="vacio">Aún nada.</td></tr>{% endfor %}</table></div>
+{% endblock %}

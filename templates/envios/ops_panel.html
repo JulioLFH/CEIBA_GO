@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load ceiba %}
+{% block titulo %}Operaciones{% endblock %}
+{% block contenido %}
+<div class="fila entre"><h1>Operaciones · orquestador de tramos</h1>
+  <span class="chip {% if cfg.erp_url %}verde{% else %}ambar{% endif %}">Ceiba ERP: {% if cfg.erp_url %}{{ cfg.get_modo_erp_display }}{% else %}independiente (sin URL){% endif %} · {{ erp_pendientes }} por sincronizar</span></div>
+<div class="grid g4" style="margin-bottom:6px">
+  {% for c, n, k in estados %}<a href="{% url 'ops_pedidos' %}?estado={{ c }}" class="card kpi" style="text-decoration:none;color:inherit;margin:0"><b>{{ k }}</b><span class="chip {{ c|color_estado }}">{{ n }}</span></a>{% endfor %}
+</div>
+<div class="grid g2" style="margin-top:16px">
+  <div class="card"><h2>Paso 7 · Pagados sin recojo asignado</h2>
+    <table>{% for p in por_asignar %}<tr><td><a href="{% url 'ops_pedido' p.codigo %}"><b>{{ p.codigo }}</b></a></td><td>{{ p.origen_distrito }}, {{ p.get_origen_departamento_display }}</td><td><a class="btn chico" href="{% url 'ops_pedido' p.codigo %}">Asignar</a></td></tr>
+    {% empty %}<tr><td class="vacio">Todo asignado.</td></tr>{% endfor %}</table></div>
+  <div class="card"><h2>Paso 9 · Recogidos por entregar a transporte</h2>
+    <table>{% for p in por_transporte %}<tr><td><a href="{% url 'ops_pedido' p.codigo %}"><b>{{ p.codigo }}</b></a></td><td>{{ p.get_origen_departamento_display }} → {{ p.get_destino_departamento_display }}</td><td><a class="btn chico" href="{% url 'ops_pedido' p.codigo %}">Despachar</a></td></tr>
+    {% empty %}<tr><td class="vacio">Nada pendiente.</td></tr>{% endfor %}</table></div>
+  <div class="card"><h2>En destino sin agente de entrega</h2>
+    <table>{% for p in en_destino_sin_agente %}<tr><td><a href="{% url 'ops_pedido' p.codigo %}">{{ p.codigo }}</a></td><td>{{ p.destino_distrito }}, {{ p.get_destino_departamento_display }}</td></tr>
+    {% empty %}<tr><td class="vacio">Nada pendiente.</td></tr>{% endfor %}</table></div>
+  <div class="card"><h2>Excepciones · entregas fallidas</h2>
+    <table>{% for p in fallidos %}<tr><td><a href="{% url 'ops_pedido' p.codigo %}">{{ p.codigo }}</a></td><td>{{ p.motivo_excepcion }}</td><td><a class="btn sec chico" href="{% url 'ops_pedido' p.codigo %}">Reprogramar / devolver</a></td></tr>
+    {% empty %}<tr><td class="vacio">Sin excepciones.</td></tr>{% endfor %}</table></div>
+</div>
+<div class="card"><h2>Cuentas por cobrar (crédito empresas)</h2><div class="tabla"><table>
+  <tr><th>Pedido</th><th>Cliente</th><th>Monto</th><th>Vence</th></tr>
+  {% for pg in por_cobrar %}<tr><td><a href="{% url 'ops_pedido' pg.pedido.codigo %}">{{ pg.pedido.codigo }}</a></td><td>{{ pg.pedido.cuenta.nombre }}</td><td>{{ pg.monto|dinero:pg.pedido.simbolo }}</td><td>{{ pg.vence|date:"d/m/Y" }}</td></tr>
+  {% empty %}<tr><td colspan="4" class="vacio">Sin créditos pendientes.</td></tr>{% endfor %}</table></div></div>
+<div class="card"><h2>Últimos pedidos</h2><div class="tabla"><table>
+  {% for p in recientes %}<tr><td><a href="{% url 'ops_pedido' p.codigo %}"><b>{{ p.codigo }}</b></a></td><td>{{ p.cuenta.nombre }}</td><td>{{ p.get_origen_departamento_display }} → {{ p.get_destino_departamento_display }}</td><td><span class="chip {{ p.estado|color_estado }}">{{ p.get_estado_display }}</span></td><td class="right">{{ p.total|dinero:p.simbolo }}</td></tr>
+  {% empty %}<tr><td class="vacio">Aún no hay pedidos.</td></tr>{% endfor %}</table></div></div>
+{% endblock %}

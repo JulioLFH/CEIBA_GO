@@ -1,0 +1,11 @@
+{% load ceiba %}
+<div class="pasos">
+  {% for s in pasos %}
+    <div class="paso {% if s.hecho %}hecho{% elif s.actual %}actual{% endif %}"><i>{% if s.hecho %}✓{% else %}{{ forloop.counter }}{% endif %}</i>{{ s.nombre }}</div>
+  {% endfor %}
+</div>
+{% if p.es_excepcion %}
+  <p style="margin:.6em 0 0"><span class="chip {{ p.estado|color_estado }}">{{ p.get_estado_display }}</span>
+  {% if p.motivo_excepcion %}<span class="muted small"> {{ p.motivo_excepcion }}</span>{% endif %}
+  {% if p.fecha_reprogramada and p.estado == "reprogramado" %}<span class="muted small"> · nueva fecha {{ p.fecha_reprogramada|date:"d/m/Y" }}</span>{% endif %}</p>
+{% endif %}

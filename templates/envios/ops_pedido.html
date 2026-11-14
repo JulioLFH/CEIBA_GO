@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block titulo %}{{ p.codigo }}{% endblock %}
+{% block contenido %}
+<div class="fila entre"><h1>Pedido {{ p.codigo }}</h1><span class="muted">{{ p.cuenta.nombre }} · {{ p.cuenta.get_tipo_display }} {{ p.cuenta.documento }}</span></div>
+<div class="card">{% include "envios/_pasos.html" %}</div>
+
+<div class="grid g2">
+{% if p.estado in "pagado recojo_asignado" %}
+  <div class="card" style="border-color:var(--verde)"><h2>Paso 7 · {% if p.estado == "pagado" %}Asignar{% else %}Reasignar{% endif %} recojo</h2>
+    <form method="post" class="fila">{% csrf_token %}<input type="hidden" name="accion" value="asignar_recojo">
+      <select name="agente" style="flex:1" required>{% for ag in agentes_origen %}<option value="{{ ag.id }}" {% if sugerido_origen and ag.id == sugerido_origen.id %}selected{% endif %}>{{ ag.nombre }} · {{ ag.get_zona_display }}{% if ag.zona == p.origen_departamento %} ★{% endif %}</option>{% endfor %}</select>
+      <button class="btn">Asignar</button></form>
+    <p class="small muted">★ agente propio de la zona de origen ({{ p.get_origen_departamento_display }}).</p></div>
+{% endif %}
+
+{% if p.estado == "recogido" %}
+  <div class="card" style="border-color:var(--verde)"><h2>Paso 9 · Entregar a transporte (emite GRE-T)</h2>
+    <form method="post">{% csrf_token %}<input type="hidden" name="accion" value="transporte">
+      <div class="grid g2">
+        <div class="campo"><label>Empresa de transporte</label><select name="transportista" required>{% for t in transportistas %}<option value="{{ t.id }}">{{ t.razon_social }}{% if t.tiene_api %} · API{% endif %}</option>{% endfor %}</select></div>
+        <div class="campo"><label>Registro</label><select name="registro"><option value="manual">Registro manual</option><option value="qr">QR del agente</option><option value="api">API del transportista</option></select></div>
+        <div class="campo"><label>Placa</label><input name="placa" placeholder="Opcional (usa la habitual)"></div>
+        <div class="campo"><label>Conductor</label><input name="conductor" placeholder="Opcional"></div>
+      </div>
+      <button class="btn">Emitir GRE-T y despachar</button></form></div>
+{% endif %}
+
+{% if p.estado in "en_destino reprogramado fallido" %}
+  <div class="card"><h2>Entrega final · asignar agente</h2>
+    <form method="post" class="fila">{% csrf_token %}<input type="hidden" name="accion" value="asignar_reparto">
+      <select name="agente" style="flex:1">{% for ag in agentes_destino %}<option value="{{ ag.id }}" {% if sugerido_destino and ag.id == sugerido_destino.id %}selected{% endif %}>{{ ag.nombre }} · {{ ag.get_zona_display }}{% if ag.zona == p.destino_departamento %} ★{% endif %}</option>{% endfor %}</select>
+      <button class="btn sec">Asignar</button></form></div>
+{% endif %}
+
+{% if p.estado == "fallido" %}
+  <div class="card" style="border-color:var(--ambar)"><h2>Excepción · reprogramar</h2>
+    <form method="post" class="fila">{% csrf_token %}<input type="hidden" name="accion" value="reprogramar"><input type="date" name="fecha" min="{{ hoy }}" value="{{ hoy }}" style="max-width:200px" required><button class="btn">Reprogramar</button></form></div>
+{% endif %}
+{% if p.estado in "fallido en_destino reprogramado" %}
+  <div class="card"><h2>Excepción · devolver al remitente</h2>
+    <form method="post" class="fila">{% csrf_token %}<input type="hidden" name="accion" value="devolver"><input name="motivo" placeholder="Motivo" style="flex:1" required><button class="btn rojo">Devolver</button></form></div>
+{% endif %}
+{% if p.estado in "creado pagado recojo_asignado" %}
+  <div class="card"><h2>Anular (baja SUNAT)</h2>
+    <p class="small muted">Comunica la baja del comprobante y las guías a SUNAT, extorna el pago o libera el crédito y avisa a Ceiba ERP.</p>
+    <form method="post" class="fila">{% csrf_token %}<input type="hidden" name="accion" value="anular"><input name="motivo" placeholder="Motivo" style="flex:1" required><button class="btn rojo">Anular pedido</button></form></div>
+{% endif %}
+{% for pg in pagos %}{% if pg.estado == "por_cobrar" %}
+  <div class="card"><h2>Cobranza del crédito</h2>
+    <form method="post" class="fila">{% csrf_token %}<input type="hidden" name="accion" value="cobranza"><input type="hidden" name="pago" value="{{ pg.id }}">
+      <input name="referencia" placeholder="N° de operación / depósito" style="flex:1" required><button class="btn">Registrar cobranza</button></form></div>
+{% endif %}{% endfor %}
+</div>
+
+{% include "envios/_detalle.html" %}
+
+<div class="card"><h2>Pasos 6 y 14 · Sincronización con Ceiba ERP</h2><div class="tabla"><table>
+  <tr><th>Tipo</th><th>Estado</th><th>Intentos</th><th>Creado</th><th>Datos</th></tr>
+  {% for s in sync %}<tr><td>{{ s.get_tipo_display }}</td><td><span class="chip {% if s.estado == 'enviado' %}verde{% elif s.estado == 'error' %}rojo{% else %}ambar{% endif %}">{{ s.get_estado_display }}</span></td>
+  <td>{{ s.intentos }}</td><td class="small">{{ s.creado|date:"d/m H:i" }}</td><td><details><summary class="small">ver</summary><pre class="small" style="white-space:pre-wrap">{{ s.payload }}</pre></details></td></tr>
+  {% empty %}<tr><td class="vacio">Sin registros.</td></tr>{% endfor %}</table></div></div>
+{% endblock %}

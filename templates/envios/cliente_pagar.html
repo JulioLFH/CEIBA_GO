@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load ceiba %}
+{% block titulo %}Pagar {{ p.codigo }}{% endblock %}
+{% block contenido %}
+<h1>Paso 4 · Paga o usa tu crédito</h1>
+<div class="grid g2">
+  <div class="card">
+    <form method="post">{% csrf_token %}
+      <div class="metodos">
+        <label class="metodo"><input type="radio" name="metodo" value="yape" checked> <b>Yape</b><span class="small muted">Billetera BCP</span></label>
+        <label class="metodo"><input type="radio" name="metodo" value="plin"> <b>Plin</b><span class="small muted">Interbank, BBVA, Scotiabank</span></label>
+        <label class="metodo"><input type="radio" name="metodo" value="billetera"> <b>Billetera digital</b><span class="small muted">Otras billeteras</span></label>
+        <label class="metodo"><input type="radio" name="metodo" value="tarjeta"> <b>Tarjeta</b><span class="small muted">Débito o crédito</span></label>
+        {% if cuenta.es_empresa %}
+        <label class="metodo"><input type="radio" name="metodo" value="credito" {% if cuenta.credito_disponible < p.total_pen %}disabled{% endif %}> <b>Factura a crédito</b>
+          <span class="small muted">Disponible {{ cuenta.credito_disponible|dinero }} · 30 días</span></label>
+        {% endif %}
+      </div>
+      <div class="msg info small" style="margin-top:14px">Pasarela de pagos en modo de pruebas: al confirmar se aprueba la operación y se genera el número de operación. La integración real (Yape/Plin/tarjeta) se conecta en este punto.</div>
+      <button class="btn full" name="accion" value="pagar">Pagar {{ p.total|dinero:p.simbolo }}</button>
+    </form>
+    <details style="margin-top:14px"><summary class="small">Cancelar este envío</summary>
+      <form method="post" class="fila" style="margin-top:8px">{% csrf_token %}<input name="motivo" placeholder="Motivo (opcional)" style="flex:1"><button class="btn rojo chico" name="accion" value="anular">Cancelar envío</button></form>
+    </details>
+  </div>
+  <div class="card">
+    <div class="fila entre"><h2>{{ p.codigo }}</h2><span class="chip">{{ p.get_estado_display }}</span></div>
+    <p>{{ p.origen_direccion }}, {{ p.origen_distrito }} ({{ p.get_origen_departamento_display }})<br>➜ {{ p.destino_direccion }}, {{ p.destino_distrito }} ({{ p.get_destino_departamento_display }})</p>
+    <p class="small muted">{{ p.total_bultos }} bulto(s) · facturable {{ p.peso_facturable_kg }} kg · llega en ~{{ p.dias_estimados }} día(s)</p>
+    <table>
+      <tr><td>Valor de venta</td><td class="right">{{ p.subtotal|dinero:p.simbolo }}</td></tr>
+      <tr><td>IGV</td><td class="right">{{ p.igv|dinero:p.simbolo }}</td></tr>
+      <tr><td><b>Total</b></td><td class="right"><b>{{ p.total|dinero:p.simbolo }}</b></td></tr>
+    </table>
+    <p class="small muted">Al pagar se emite tu {% if cuenta.es_empresa %}factura{% else %}boleta{% endif %} electrónica y la GRE Remitente, y asignamos un agente para el recojo.</p>
+  </div>
+</div>
+{% endblock %}

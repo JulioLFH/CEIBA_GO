@@ -1,0 +1,17 @@
+# claves y conexión a la base: nunca al repositorio
+.env.clave
+.env.postgres
+.env.*
+*.env
+# datos: base SQLite antigua, archivos subidos y respaldos
+*.sqlite3
+media/
+respaldos/
+# entorno, archivos generados y copias de seguridad de los cambios
+.venv/
+staticfiles/
+__pycache__/
+*.pyc
+*.antes-*
+*.desactivado*
+logs/

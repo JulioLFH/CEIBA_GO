@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load ceiba static %}
+{% block titulo %}{{ g.tipo }} {{ g.numero_completo }}{% endblock %}
+{% block contenido %}
+<div class="noprint fila" style="justify-content:flex-end;margin-bottom:10px"><button class="btn sec" onclick="print()">Imprimir guía / etiqueta</button></div>
+<div class="doc">
+  <div class="cab">
+    <div>{% if g.tipo == "GRE-R" %}<img src="{% static 'img/ceiba-isotipo.svg' %}" alt="" class="logo-doc">{% endif %}<h2>{% if g.tipo == "GRE-T" and g.transportista %}{{ g.transportista.razon_social }}{% else %}{{ cfg.empresa_razon }}{% endif %}</h2>
+      <div class="small">{% if g.tipo == "GRE-T" and g.transportista %}RUC {{ g.transportista.ruc }} · transportista{% else %}RUC {{ cfg.empresa_ruc }} · remitente{% endif %}</div></div>
+    <div class="num">GUÍA DE REMISIÓN ELECTRÓNICA<br>{% if g.tipo == "GRE-R" %}REMITENTE{% else %}TRANSPORTISTA{% endif %}<br>{{ g.numero_completo }}</div>
+  </div>
+  {% if g.sunat_estado == "baja" %}<div class="msg error">Guía dada de BAJA ante SUNAT</div>{% endif %}
+  <div class="fila" style="align-items:flex-start;gap:20px">
+    <div class="qrbox">{% qr_svg g.qr_texto 190 %}</div>
+    <div style="flex:1">
+      <table>
+        <tr><td><b>Pedido</b></td><td>{{ p.codigo }}</td></tr>
+        <tr><td><b>Fecha de traslado</b></td><td>{{ g.emitida|date:"d/m/Y H:i" }}</td></tr>
+        <tr><td><b>Motivo</b></td><td>{{ g.motivo_traslado }}</td></tr>
+        <tr><td><b>Punto de partida</b></td><td>{{ g.punto_partida }}</td></tr>
+        <tr><td><b>Punto de llegada</b></td><td>{{ g.punto_llegada }}</td></tr>
+        <tr><td><b>Destinatario</b></td><td>{{ p.destinatario_nombre }} · {{ p.destinatario_documento }}</td></tr>
+        <tr><td><b>Bultos / peso bruto</b></td><td>{{ g.bultos }} · {{ g.peso_bruto_kg }} kg</td></tr>
+        {% if g.tipo == "GRE-T" %}<tr><td><b>Vehículo / conductor</b></td><td>{{ g.placa|default:"—" }} · {{ g.conductor|default:"—" }}</td></tr>{% endif %}
+        <tr><td><b>Estado SUNAT</b></td><td>{{ g.get_sunat_estado_display }} · ticket {{ g.sunat_ticket }}</td></tr>
+      </table>
+    </div>
+  </div>
+  <p class="small muted" style="margin-top:12px">Escanee el QR en cada entrega de mano (recojo, recepción y entrega): registra el movimiento sin digitar. Sin guía válida el tramo no avanza.</p>
+</div>
+{% endblock %}

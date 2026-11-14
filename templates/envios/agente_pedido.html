@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block titulo %}{{ p.codigo }}{% endblock %}
+{% block head %}<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" defer></script>{% endblock %}
+{% block contenido %}
+<div class="fila entre"><h1>{{ p.codigo }}</h1><a class="btn sec" href="{% url 'agente_panel' %}">← Mis tareas</a></div>
+<div class="card">{% include "envios/_pasos.html" %}</div>
+
+{% if p.estado == "recojo_asignado" and t_recojo.agente_id == a.id %}
+<div class="card" style="border-color:var(--naranja)">
+  <h2>Paso 8 · Recoger en origen</h2>
+  <p class="small muted">{{ p.origen_direccion }}, {{ p.origen_distrito }} · {{ p.origen_contacto }} ({{ p.origen_telefono }}). Escanee el QR de la GRE Remitente pegada al paquete, confirme el peso real y tome una foto.</p>
+  <form method="post" enctype="multipart/form-data">{% csrf_token %}<input type="hidden" name="accion" value="recojo">
+    {% include "envios/_lector.html" with destino="qr_recojo" valor=qr etiqueta="QR de la GRE Remitente" %}
+    <div class="grid g3" style="margin-top:12px">
+      <div class="campo"><label>Peso real total (kg)</label><input type="number" step="0.01" min="0.01" name="peso_real" value="{{ p.peso_real_kg|stringformat:'s' }}"></div>
+      <div class="campo"><label>Foto de evidencia</label><input type="file" name="foto" accept="image/*" capture="environment" required></div>
+      <div class="campo"><label>Observaciones</label><input name="observaciones" placeholder="Opcional"></div>
+    </div>
+    <button class="btn">Confirmar recojo</button>
+  </form>
+</div>
+{% endif %}
+
+{% if p.estado == "en_transito" and a.zona == p.destino_departamento and a.rol != "recojo" %}
+<div class="card" style="border-color:var(--naranja)">
+  <h2>Paso 11 · Recepcionar en destino</h2>
+  <form method="post">{% csrf_token %}<input type="hidden" name="accion" value="recepcion">
+    {% include "envios/_lector.html" with destino="qr_recep" valor=qr etiqueta="QR de la GRE Transportista" %}
+    <div class="grid g2" style="margin-top:12px">
+      <div class="campo"><label><input type="checkbox" name="almacenar" checked> Almacenar en destino</label></div>
+      <div class="campo"><label>Ubicación en almacén</label><input name="ubicacion" placeholder="Ej.: Rack A-03"></div>
+    </div>
+    <button class="btn">Registrar recepción</button>
+  </form>
+</div>
+{% endif %}
+
+{% if p.estado in "en_destino reprogramado" and a.zona == p.destino_departamento %}
+  {% if not t_entrega.agente %}
+  <div class="card"><form method="post">{% csrf_token %}<input type="hidden" name="accion" value="tomar"><button class="btn sec">Tomar esta entrega</button></form></div>
+  {% elif t_entrega.agente_id == a.id %}
+  <div class="card" style="border-color:var(--naranja)"><h2>Salir a reparto</h2>
+    <p class="small muted">Destino: {{ p.destino_direccion }}, {{ p.destino_distrito }}{% if p.fecha_reprogramada %} · reprogramado para {{ p.fecha_reprogramada|date:"d/m/Y" }}{% endif %}</p>
+    <form method="post">{% csrf_token %}<input type="hidden" name="accion" value="reparto"><button class="btn">Iniciar reparto</button></form></div>
+  {% endif %}
+{% endif %}
+
+{% if p.estado == "en_reparto" and t_entrega.agente_id == a.id %}
+<div class="card" style="border-color:var(--verde)">
+  <h2>Paso 12 · Entrega final con prueba de entrega (POD)</h2>
+  <p class="small muted">{{ p.destino_direccion }}, {{ p.destino_distrito }} · {{ p.destinatario_nombre }} ({{ p.destinatario_documento }}) · {{ p.destinatario_telefono }}</p>
+  <form method="post" enctype="multipart/form-data">{% csrf_token %}<input type="hidden" name="accion" value="entrega">
+    {% include "envios/_lector.html" with destino="qr_ent" valor=qr etiqueta="QR de la guía (GRE-R o GRE-T)" %}
+    <div class="grid g3" style="margin-top:12px">
+      <div class="campo"><label>DNI / RUC de quien recibe</label><input name="receptor_documento" value="{{ p.destinatario_documento }}" inputmode="numeric" autocomplete="off" data-doc data-doc-nombre="id_receptor_nombre" required></div>
+      <div class="campo"><label>Recibe</label><input id="id_receptor_nombre" name="receptor_nombre" value="{{ p.destinatario_nombre }}" required></div>
+      <div class="campo"><label>Foto (opcional)</label><input type="file" name="foto" accept="image/*" capture="environment"></div>
+    </div>
+    <label>Firma de quien recibe</label>
+    <canvas class="firma" id="cvfirma" data-campo="firma"></canvas><input type="hidden" name="firma" id="firma">
+    <div class="fila" style="margin:8px 0 12px"><button type="button" class="btn sec chico" data-limpiar="cvfirma">Borrar firma</button></div>
+    <button class="btn">Confirmar entrega</button>
+  </form>
+  <details style="margin-top:14px"><summary>No se pudo entregar</summary>
+    <form method="post" class="fila" style="margin-top:8px">{% csrf_token %}<input type="hidden" name="accion" value="fallido">
+      <select name="motivo" style="max-width:320px"><option>Destinatario ausente</option><option>Dirección no encontrada</option><option>Rechazado por el destinatario</option><option>Zona sin acceso</option></select>
+      <button class="btn rojo chico">Registrar entrega fallida</button></form>
+  </details>
+</div>
+{% endif %}
+
+{% include "envios/_detalle.html" %}
+{% endblock %}
