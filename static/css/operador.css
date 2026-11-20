@@ -1,0 +1,24 @@
+/* Operador logístico (Go Just In Time): complementa app.css */
+.ol-nav{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}
+.ol-nav a{padding:6px 12px;border-radius:999px;border:1px solid var(--linea);background:#fff;color:var(--selva);text-decoration:none;font-size:.85rem;font-weight:600}
+.ol-nav a.act{background:var(--selva);color:#fff;border-color:var(--selva)}
+.ol-estado{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.78rem;font-weight:600;white-space:nowrap}
+.ol-kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.ol-kpis a{display:block;text-decoration:none;color:inherit;margin:0;border-left:6px solid var(--linea)}
+.ol-dl{display:grid;grid-template-columns:minmax(120px,30%) 1fr;gap:6px 12px;margin:0;font-size:.88rem}
+.ol-dl dt{font-weight:600;color:#33423b}.ol-dl dd{margin:0}
+.ol-pre{white-space:pre-wrap;background:#f6f8f7;border:1px solid var(--linea);border-radius:9px;padding:10px;font-size:.85rem}
+.ol-aviso{background:#fbf0d9;border:1px solid #edd9a8;border-radius:9px;padding:10px;font-size:.88rem;margin-bottom:12px}
+.ol-ok{background:#dff3e8;border:1px solid #b8e2ca;border-radius:9px;padding:10px;font-size:.88rem}
+.ol-grupos{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.ol-grupos .card.conf{border-color:#7cc49d}
+.ol-guia{border-top:1px solid var(--linea);padding:8px 0;font-size:.85rem}
+.ol-guia form{display:flex;gap:6px;margin-top:6px}.ol-guia select{padding:5px 8px;font-size:.82rem}
+.ol-en-linea{display:flex;gap:6px;align-items:center}.ol-en-linea input,.ol-en-linea select{flex:1}
+.ol-estados td{vertical-align:middle}.ol-estados input,.ol-estados select{padding:5px 7px;font-size:.82rem}
+.ol-estados input[type=color]{width:46px;padding:2px;height:32px}
+.ol-check{display:flex;gap:6px;align-items:center;font-weight:500}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.ol-errores{color:var(--rojo);font-size:.82rem}
+.ol-ayuda{color:var(--gris);font-size:.8rem;margin-top:3px}
+@media(max-width:640px){.ol-dl{grid-template-columns:1fr}.ol-dl dt{margin-top:6px}}

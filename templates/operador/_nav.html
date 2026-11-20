@@ -1,0 +1,16 @@
+{% with n=request.resolver_match.url_name %}
+<nav class="ol-nav noprint" aria-label="Operador logístico">
+  <a href="{% url 'operador:tablero' %}" class="{% if n == 'tablero' %}act{% endif %}">Tablero</a>
+  <a href="{% url 'operador:solicitudes' %}" class="{% if n == 'solicitudes' or n == 'solicitud' or n == 'solicitud_nueva' %}act{% endif %}">Solicitudes</a>
+  <a href="{% url 'operador:guias' %}" class="{% if n == 'guias' or n == 'guia' %}act{% endif %}">Guías</a>
+  <a href="{% url 'operador:planificacion' %}" class="{% if n == 'planificacion' %}act{% endif %}">Planificación</a>
+  <a href="{% url 'operador:consolidados' %}" class="{% if n == 'consolidados' or n == 'consolidado' or n == 'guia_go' %}act{% endif %}">Consolidados</a>
+  <a href="{% url 'operador:bitacora' %}" class="{% if n == 'bitacora' %}act{% endif %}">Bitácora</a>
+  <a href="{% url 'operador:costos' %}" class="{% if n == 'costos' %}act{% endif %}">Costos</a>
+  <a href="{% url 'operador:mensajes' %}" class="{% if n == 'mensajes' %}act{% endif %}">Mensajes</a>
+  <a href="{% url 'operador:clientes' %}" class="{% if n == 'clientes' or n == 'cliente' %}act{% endif %}">Clientes</a>
+  <a href="{% url 'operador:estados' %}" class="{% if n == 'estados' %}act{% endif %}">Estados</a>
+  <a href="{% url 'operador:configuracion' %}" class="{% if n == 'configuracion' %}act{% endif %}">Configuración</a>
+  <a href="{% url 'operador:movil' %}">App del celular</a>
+</nav>
+{% endwith %}

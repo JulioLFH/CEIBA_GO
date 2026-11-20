@@ -1,0 +1,26 @@
+{% extends "base.html" %}{% load static %}
+{% block titulo %}Operador logístico · configuración{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'css/operador.css' %}?v=1">{% endblock %}
+{% block contenido %}
+{% if cfg.activo %}{% include "operador/_nav.html" %}{% endif %}
+<h1>Operador logístico · configuración</h1>
+<p class="small muted">Módulo de Go Just In Time: solicitudes de recojo por correo y WhatsApp, guías de los clientes por QR, consolidación por destino, guías remitentes de Go y entrega con foto, DNI y firma. Mientras esté apagado no se lee el buzón ni el WhatsApp y nadie ve sus pantallas.</p>
+<div class="grid g2">
+  <form method="post" class="card">{% csrf_token %}
+    {% include "operador/_campos.html" with form=form %}
+    <button class="btn">Guardar</button>
+  </form>
+  <div class="card"><h2>Datos de la empresa emisora</h2>
+    <dl class="ol-dl">
+      <dt>RUC</dt><dd>{{ empresa.empresa_ruc|default:"—" }}</dd>
+      <dt>Razón social</dt><dd>{{ empresa.empresa_razon|default:"—" }}</dd>
+      <dt>Dirección</dt><dd>{{ empresa.empresa_direccion|default:"—" }}</dd>
+      <dt>Envío a SUNAT</dt><dd>{{ empresa.get_proveedor_sunat_display|default:empresa.proveedor_sunat }}</dd>
+    </dl>
+    <p class="small muted" style="margin-top:10px">Se toman de la configuración general de Ceiba GO (Configuración › Configuración). La partida vacía usa la dirección de la empresa.</p>
+    <h2 style="margin-top:16px">Canales de entrada</h2>
+    <p class="small">Correo: el comando <code>leer_correo_operador</code> lee el buzón de pedidos (variables de entorno OPERADOR_IMAP_*), programado cada pocos minutos.<br>
+      WhatsApp: el webhook de Meta apunta a <code>{{ request.scheme }}://{{ request.get_host }}{% url 'operador:whatsapp' %}</code> (variables WHATSAPP_VERIFY_TOKEN y WHATSAPP_APP_SECRET).</p>
+  </div>
+</div>
+{% endblock %}

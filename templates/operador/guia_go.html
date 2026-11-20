@@ -1,0 +1,25 @@
+{% extends "operador/base_ol.html" %}
+{% block titulo %}Guía {{ gr.numero_completo }}{% endblock %}
+{% block ol %}
+<div class="fila entre"><h1>Guía remitente {{ gr.numero_completo }} <span class="chip {% if gr.sunat_estado == 'aceptada' %}verde{% else %}ambar{% endif %}">{{ gr.get_sunat_estado_display }}</span></h1>
+  <span class="fila"><button class="btn sec chico noprint" type="button" onclick="window.print()">Imprimir</button>{% if consolidado %}<a class="btn sec chico noprint" href="{% url 'operador:consolidado' consolidado.pk %}">‹ Consolidado {{ consolidado.numero }}</a>{% endif %}</span></div>
+{% if gr.sunat_estado == 'aceptada' %}<p class="small muted">Modo simulado: la guía se numera y se da por aceptada sin enviarse a SUNAT (Configuración de Ceiba GO · proveedor SUNAT).</p>{% endif %}
+<div class="card"><dl class="ol-dl">
+  <dt>Clase</dt><dd>{{ gr.get_clase_display }} · tipo {{ gr.tipo }} · {{ gr.fecha|date:"d/m/Y" }}</dd>
+  <dt>Remitente</dt><dd>{{ empresa.empresa_razon }} (RUC {{ empresa.empresa_ruc }})</dd>
+  <dt>Destinatario</dt><dd>{{ gr.destinatario_nombre }}{% if gr.destinatario_doc %} ({{ gr.destinatario_doc }}){% endif %}</dd>
+  <dt>Motivo</dt><dd>{{ gr.motivo_traslado }}{% if gr.descripcion_motivo %} · {{ gr.descripcion_motivo }}{% endif %} · modalidad {{ gr.modalidad }}</dd>
+  <dt>Partida</dt><dd>{{ gr.partida_direccion }} <span class="muted">[{{ gr.partida_ubigeo }}]</span></dd>
+  <dt>Llegada</dt><dd>{{ gr.llegada_direccion }} <span class="muted">[{{ gr.llegada_ubigeo }}]</span></dd>
+  <dt>Transportista</dt><dd>{% if gr.transportista %}{{ gr.transportista.razon_social }} (RUC {{ gr.transportista.ruc }}){% else %}—{% endif %}</dd>
+  <dt>Bultos / peso</dt><dd>{{ gr.bultos }} · {{ gr.peso_kg|floatformat:2 }} kg</dd>
+  {% if gr.observaciones %}<dt>Observaciones</dt><dd>{{ gr.observaciones }}</dd>{% endif %}
+</dl></div>
+<div class="card"><h2>Documentos relacionados ({{ relacionados|length }})</h2><div class="tabla"><table>
+  <tr><th>Tipo</th><th>Serie-número</th><th>RUC del emisor</th></tr>
+  {% for r in relacionados %}<tr><td>{{ r.tipo }}</td><td>{{ r.numero }}</td><td>{{ r.emisor_ruc }}</td></tr>{% empty %}<tr><td colspan="3" class="vacio">Sin documentos relacionados.</td></tr>{% endfor %}
+</table></div></div>
+{% if gr.items %}<div class="card"><h2>Ítems</h2><div class="tabla"><table><tr><th>Descripción</th><th>U.M.</th><th class="num">Cantidad</th></tr>{% for i in gr.items %}<tr><td>{{ i.descripcion }}</td><td>{{ i.unidad }}</td><td class="num">{{ i.cantidad }}</td></tr>{% endfor %}</table></div></div>{% endif %}
+{% if guias_cliente %}<div class="card"><h2>Guías de clientes en este último tramo</h2><div class="tabla"><table>{% for g in guias_cliente %}<tr><td><a href="{% url 'operador:guia' g.pk %}">{{ g.numero_completo }}</a></td><td>{{ g.cliente.nombre }}</td></tr>{% endfor %}</table></div></div>{% endif %}
+{% include "operador/_adjuntos.html" %}
+{% endblock %}

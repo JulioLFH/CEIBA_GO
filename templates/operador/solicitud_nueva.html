@@ -1,0 +1,10 @@
+{% extends "operador/base_ol.html" %}
+{% block titulo %}Nueva solicitud{% endblock %}
+{% block ol %}
+<h1>Nueva solicitud de recojo</h1>
+<p class="small muted">Para un pedido que llegó por teléfono u otro medio. Los correos y WhatsApp de los remitentes autorizados crean la solicitud solos.</p>
+<form method="post" class="card" style="max-width:640px">{% csrf_token %}
+  {% include "operador/_campos.html" with form=form %}
+  <div class="fila"><button class="btn">Registrar</button><a class="btn sec" href="{% url 'operador:solicitudes' %}">Cancelar</a></div>
+</form>
+{% endblock %}

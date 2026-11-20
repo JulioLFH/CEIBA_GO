@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% load static %}
+{% block head %}<link rel="stylesheet" href="{% static 'css/operador.css' %}?v=1">{% endblock %}
+{% block contenido %}
+{% include "operador/_nav.html" %}
+{% block ol %}{% endblock %}
+{% endblock %}
+{% block scripts %}<script>
+document.addEventListener('submit', function (ev) {
+  var f = ev.target.closest('form[data-confirmar]');
+  if (f && !window.confirm(f.dataset.confirmar)) { ev.preventDefault(); }
+});
+</script>{% block ol_scripts %}{% endblock %}{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "operador/base_ol.html" %}
+{% block titulo %}Maestro de estados{% endblock %}
+{% block ol %}
+<h1>Maestro de estados</h1>
+<p class="small muted">Nombre, color, sigla y orden de cada estado de las guías. Los estados que cambia el sistema solo (recojo, ingreso, despacho, llegada, entrega) mantienen su código; aquí solo se cambia cómo se ven. «Actualizar» y «Actualizar 2» quedan manuales hasta que Go confirme para qué sirven.</p>
+<div class="card tabla"><table class="ol-estados">
+  <tr><th>Se ve así</th><th>Nombre</th><th>Color</th><th>Sigla</th><th>Orden</th><th>Disparador</th><th>Inicial</th><th>Activo</th><th></th></tr>
+  {% for e, f in filas %}<tr>
+    <td>{% include "operador/_estado.html" %}<div class="small muted">{{ e.codigo }}</div></td>
+    <td><input form="est-{{ e.pk }}" type="text" name="{{ f.nombre.html_name }}" value="{{ f.nombre.value|default:'' }}" maxlength="60" aria-label="Nombre"></td>
+    <td><input form="est-{{ e.pk }}" type="color" name="{{ f.color.html_name }}" value="{{ f.color.value|default:'#888888' }}" aria-label="Color"></td>
+    <td><input form="est-{{ e.pk }}" type="text" name="{{ f.sigla.html_name }}" value="{{ f.sigla.value|default:'' }}" maxlength="6" style="width:70px" aria-label="Sigla"></td>
+    <td><input form="est-{{ e.pk }}" type="number" name="{{ f.orden.html_name }}" value="{{ f.orden.value }}" style="width:70px" aria-label="Orden"></td>
+    <td><input form="est-{{ e.pk }}" type="text" name="{{ f.disparador.html_name }}" value="{{ f.disparador.value|default:'' }}" aria-label="Disparador"></td>
+    <td><input form="est-{{ e.pk }}" type="checkbox" name="{{ f.inicial.html_name }}" {% if f.inicial.value %}checked{% endif %} aria-label="Inicial"></td>
+    <td><input form="est-{{ e.pk }}" type="checkbox" name="{{ f.activo.html_name }}" {% if f.activo.value %}checked{% endif %} aria-label="Activo"></td>
+    <td><form method="post" id="est-{{ e.pk }}">{% csrf_token %}<input type="hidden" name="estado" value="{{ e.pk }}"><button class="btn sec chico">Guardar</button></form></td>
+  </tr>{% endfor %}
+</table></div>
+{% endblock %}

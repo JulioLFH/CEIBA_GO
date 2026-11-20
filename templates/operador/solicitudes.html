@@ -1,0 +1,18 @@
+{% extends "operador/base_ol.html" %}
+{% block titulo %}Solicitudes de recojo{% endblock %}
+{% block ol %}
+<div class="fila entre"><h1>Solicitudes de recojo</h1><a class="btn chico" href="{% url 'operador:solicitud_nueva' %}">Nueva solicitud</a></div>
+<form class="card fila" method="get">
+  <input name="q" value="{{ q }}" placeholder="Número, cliente o remitente" style="flex:2" aria-label="Buscar">
+  <select name="estado" style="flex:1" aria-label="Estado"><option value="todos">Todos los estados</option>{% for c, n in estados %}<option value="{{ c }}" {% if c == estado %}selected{% endif %}>{{ n }}</option>{% endfor %}</select>
+  <button class="btn">Filtrar</button>
+</form>
+<div class="card tabla"><table>
+  <tr><th>N°</th><th>Cliente</th><th>Llegó por</th><th>Remitente</th><th class="num">Guías</th><th>Operador</th><th>Estado</th><th>Creada</th></tr>
+  {% for s in page_obj %}<tr><td><a href="{% url 'operador:solicitud' s.pk %}"><b>{{ s.numero }}</b></a></td><td>{{ s.cliente.nombre }}</td><td>{{ s.get_canal_display }}</td><td class="small">{{ s.remitente|default:"—" }}</td><td class="num">{{ s.n_guias }}</td>
+    <td>{% if s.operador %}{{ s.operador.get_full_name|default:s.operador.username }}{% else %}Cualquiera{% endif %}</td>
+    <td><span class="chip {% if s.estado == 'ASIGNADO' %}ambar{% elif s.estado == 'ATENDIDO' %}verde{% endif %}">{{ s.get_estado_display }}</span></td><td class="small muted">{{ s.creado|date:"d/m/Y H:i" }}</td></tr>
+  {% empty %}<tr><td colspan="8" class="vacio">Sin solicitudes.</td></tr>{% endfor %}
+</table></div>
+{% include "operador/_paginas.html" %}
+{% endblock %}

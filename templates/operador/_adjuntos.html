@@ -1,0 +1,3 @@
+{% if adjuntos %}<div class="card"><h2>Fotos y documentos</h2><div class="tabla"><table>
+  {% for a in adjuntos %}<tr><td><a href="{{ a.archivo.url }}" target="_blank" rel="noopener">{{ a.nombre|default:a.archivo.name }}</a></td><td>{{ a.descripcion }}</td><td class="small muted">{{ a.creado|date:"d/m/Y H:i" }}{% if a.usuario %} · {{ a.usuario.username }}{% endif %}</td></tr>{% endfor %}
+</table></div></div>{% endif %}

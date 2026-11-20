@@ -1,0 +1,38 @@
+{% extends "operador/base_ol.html" %}
+{% block titulo %}Guía {{ g.numero_completo }}{% endblock %}
+{% block ol %}
+<div class="fila entre"><h1>Guía {{ g.numero_completo }} {% include "operador/_estado.html" with e=g.estado %}</h1>
+  <a class="btn sec chico" href="{% url 'operador:guias' %}">‹ Guías</a></div>
+{% if not g.datos_completos %}<div class="ol-aviso">Se escaneó su QR pero aún no tiene sus datos (remitente, destinatario, llegada, bultos, peso e ítems). Cárguelos con el XML de la guía{% if g.qr_texto %}. QR leído: <code>{{ g.qr_texto|truncatechars:120 }}</code>{% endif %}.</div>{% endif %}
+<div class="grid g2">
+  <div class="card"><dl class="ol-dl">
+    <dt>Remitente</dt><dd>{{ g.emisor_nombre|default:"—" }} (RUC {{ g.emisor_ruc }}) · cliente {{ g.cliente.nombre }}</dd>
+    <dt>Emisión / traslado</dt><dd>{{ g.fecha_emision|date:"d/m/Y"|default:"—" }} · {{ g.fecha_traslado|date:"d/m/Y"|default:"—" }}{% if g.motivo_traslado %} · motivo {{ g.motivo_traslado }}{% endif %}</dd>
+    <dt>Destinatario</dt><dd>{{ g.destinatario_nombre|default:"—" }} {% if g.destinatario_doc %}({{ g.destinatario_doc }}){% endif %}</dd>
+    <dt>Partida</dt><dd>{{ g.partida_direccion|default:"—" }} {% if g.partida_ubigeo %}<span class="muted">[{{ g.partida_ubigeo }}]</span>{% endif %}</dd>
+    <dt>Llegada</dt><dd>{{ g.llegada_direccion|default:"—" }} {% if g.llegada_ubigeo %}<span class="muted">[{{ g.llegada_ubigeo }}]</span>{% endif %} · <b>{{ g.destino|default:"sin destino" }}</b></dd>
+    <dt>Bultos / peso</dt><dd>{{ g.bultos }} · {{ g.peso|floatformat:3 }} {{ g.unidad_peso }}</dd>
+    <dt>Cargada desde</dt><dd>{{ g.get_origen_datos_display }}{% if g.solicitud %} · solicitud <a href="{% url 'operador:solicitud' g.solicitud.pk %}">{{ g.solicitud.numero }}</a>{% endif %}</dd>
+    {% if g.recogida_en %}<dt>Recojo</dt><dd>{{ g.recogida_en|date:"d/m/Y H:i" }}{% if g.recogida_por %} · {{ g.recogida_por.get_full_name|default:g.recogida_por.username }}{% endif %}{% if g.recojo_latitud %} · <a href="https://www.google.com/maps/search/?api=1&query={{ g.recojo_latitud }},{{ g.recojo_longitud }}" target="_blank" rel="noopener">GPS</a>{% endif %}</dd>{% endif %}
+    {% if g.consolidado %}<dt>Consolidado</dt><dd><a href="{% url 'operador:consolidado' g.consolidado.pk %}">{{ g.consolidado }}</a>{% if g.consolidado.guia %} · guía <a href="{% url 'operador:guia_go' g.consolidado.guia.pk %}">{{ g.consolidado.guia.numero_completo }}</a>{% endif %}</dd>{% endif %}
+    {% if g.ultimo_tramo %}<dt>Último tramo</dt><dd><a href="{% url 'operador:guia_go' g.ultimo_tramo.pk %}">{{ g.ultimo_tramo.numero_completo }}</a></dd>{% endif %}
+    {% if g.entregado_en %}<dt>Entrega</dt><dd>{{ g.entregado_en|date:"d/m/Y H:i" }} · recibió DNI {{ g.receptor_dni }} {{ g.receptor_nombre }}{% if g.entrega_latitud %} · <a href="https://www.google.com/maps/search/?api=1&query={{ g.entrega_latitud }},{{ g.entrega_longitud }}" target="_blank" rel="noopener">GPS</a>{% endif %}{% if g.firma %}<div style="margin-top:6px"><img src="{{ g.firma }}" alt="Firma de quien recibió" style="max-height:90px;border:1px solid var(--linea);border-radius:6px"></div>{% endif %}</dd>{% endif %}
+  </dl></div>
+  <div class="card">
+    <form method="post" class="campo">{% csrf_token %}<input type="hidden" name="accion" value="estado">
+      <label for="g-estado">Cambiar el estado a mano</label>
+      <select name="estado" id="g-estado" style="margin-bottom:6px">{% for e in estados %}<option value="{{ e.pk }}"{% if e == g.estado %} selected{% endif %}>{{ e.nombre }}</option>{% endfor %}</select>
+      <input name="detalle" placeholder="Motivo (queda en la bitácora)" aria-label="Motivo" style="margin-bottom:6px">
+      <button class="btn sec chico">Cambiar</button>
+    </form>
+    <form method="post" enctype="multipart/form-data" class="campo">{% csrf_token %}<input type="hidden" name="accion" value="xml">
+      <label for="g-xml">Completar con el XML de la guía</label>
+      <div class="ol-en-linea"><input type="file" name="xml" id="g-xml" accept=".xml" required><button class="btn sec chico">Cargar</button></div>
+    </form>
+    <p class="small muted">Los estados cambian solos con el escaneo y las fotos del celular.</p>
+  </div>
+</div>
+{% if g.items %}<div class="card"><h2>Ítems</h2><div class="tabla"><table><tr><th>Código</th><th>Descripción</th><th>U.M.</th><th class="num">Cantidad</th></tr>{% for i in g.items %}<tr><td>{{ i.codigo }}</td><td>{{ i.descripcion }}</td><td>{{ i.unidad }}</td><td class="num">{{ i.cantidad }}</td></tr>{% endfor %}</table></div></div>{% endif %}
+{% include "operador/_adjuntos.html" %}
+{% include "operador/_bitacora.html" %}
+{% endblock %}

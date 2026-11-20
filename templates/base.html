@@ -20,10 +20,12 @@
       <a href="{% url 'cliente_panel' %}">Mis envíos</a><a href="{% url 'cliente_nuevo' %}">Nuevo envío</a>
     {% elif rol == "agente" %}
       <a href="{% url 'agente_panel' %}">Mis tareas</a><a href="{% url 'escanear' %}">Escanear QR</a>
+      {% if ol_celular %}<a href="{% url 'operador:movil' %}">Operador logístico</a>{% endif %}
     {% elif rol == "transportista" %}
       <a href="{% url 'transp_panel' %}">Traslados</a><a href="{% url 'escanear' %}">Escanear QR</a>
     {% elif rol == "operador" %}
       <a href="{% url 'ops_panel' %}">Operaciones</a><a href="{% url 'ops_pedidos' %}">Pedidos</a>
+      {% if ol_oficina %}<a href="{% url 'operador:tablero' %}">Operador logístico</a>{% elif ol_config %}<a href="{% url 'operador:configuracion' %}">Operador logístico</a>{% endif %}
       <a href="{% url 'ops_erp' %}">Ceiba ERP</a><a href="/admin/">Configuración</a>
     {% endif %}
     <a href="{% url 'seguimiento' %}">Seguimiento</a>

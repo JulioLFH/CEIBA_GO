@@ -9,6 +9,7 @@ admin.site.site_title = "Ceiba GO"
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("envios.urls")),
+    path("operador/", include("operador.urls")),
     # evidencias (fotos de recojo / POD): las sirve la propia app
     re_path(r"^media/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT}),
 ]

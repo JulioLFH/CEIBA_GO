@@ -1,0 +1,18 @@
+{% extends "operador/base_ol.html" %}
+{% block titulo %}Guías de los clientes{% endblock %}
+{% block ol %}
+<h1>Guías de los clientes</h1>
+<form class="card fila" method="get">
+  <input name="q" value="{{ q }}" placeholder="Serie, número, cliente, destinatario, RUC o destino" style="flex:2" aria-label="Buscar">
+  <select name="estado" style="flex:1" aria-label="Estado"><option value="">Todos los estados</option>{% for e in estados %}<option value="{{ e.codigo }}" {% if e.codigo == estado %}selected{% endif %}>{{ e.nombre }}</option>{% endfor %}</select>
+  <label class="ol-check" style="margin:0"><input type="checkbox" name="pendientes" value="1" {% if pendientes %}checked{% endif %}> Solo con datos pendientes</label>
+  <button class="btn">Filtrar</button>
+</form>
+<div class="card tabla"><table>
+  <tr><th>Guía</th><th>Cliente</th><th>Destinatario</th><th>Destino</th><th class="num">Bultos</th><th class="num">Peso</th><th>Consolidado</th><th>Estado</th></tr>
+  {% for g in page_obj %}<tr><td><a href="{% url 'operador:guia' g.pk %}"><b>{{ g.numero_completo }}</b></a>{% if not g.datos_completos %} <span class="chip ambar">datos pendientes</span>{% endif %}</td><td>{{ g.cliente.nombre }}</td><td>{{ g.destinatario_nombre|default:"—" }}</td><td>{{ g.destino|default:"—" }}</td><td class="num">{{ g.bultos }}</td><td class="num">{{ g.peso|floatformat:2 }}</td>
+    <td>{% if g.consolidado %}<a href="{% url 'operador:consolidado' g.consolidado.pk %}">{{ g.consolidado.numero }}</a>{% else %}—{% endif %}</td><td>{% include "operador/_estado.html" with e=g.estado %}</td></tr>
+  {% empty %}<tr><td colspan="8" class="vacio">Sin guías.</td></tr>{% endfor %}
+</table></div>
+{% include "operador/_paginas.html" %}
+{% endblock %}

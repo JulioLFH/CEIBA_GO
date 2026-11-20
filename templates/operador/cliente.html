@@ -1,0 +1,21 @@
+{% extends "operador/base_ol.html" %}
+{% block titulo %}{{ cuenta.nombre }} · servicio logístico{% endblock %}
+{% block ol %}
+<div class="fila entre"><h1>{{ cuenta.nombre }} · servicio logístico</h1>
+  <span class="fila"><a class="btn sec chico" href="{% url 'operador:solicitud_nueva' %}?cliente={{ cuenta.pk }}">Nueva solicitud</a><a class="btn sec chico" href="{% url 'operador:clientes' %}">‹ Clientes</a></span></div>
+<div class="grid g2">
+  <form method="post" class="card">{% csrf_token %}
+    {% include "operador/_campos.html" with form=form %}
+    <button class="btn">Guardar</button>
+  </form>
+  <div class="card"><dl class="ol-dl">
+    <dt>RUC</dt><dd>{{ cuenta.documento }}</dd>
+    <dt>Usuario</dt><dd>{{ cuenta.user.username }}{% if not cuenta.user.is_active %} <span class="chip rojo">inactivo</span>{% endif %}</dd>
+    <dt>Línea de crédito</dt><dd>S/ {{ cuenta.linea_credito|floatformat:2 }}</dd>
+    <dt>Dirección</dt><dd>{{ cuenta.direccion|default:"—" }}</dd>
+    <dt>Teléfono</dt><dd>{{ cuenta.telefono|default:"—" }}</dd>
+    <dt>Puede pedir recojos</dt><dd>{% if perfil.pk and perfil.habilitado %}<span class="chip verde">Sí</span>{% else %}<span class="chip">No</span> <span class="small muted">(necesita línea de crédito o la casilla, y el usuario activo)</span>{% endif %}</dd>
+  </dl>
+  <p class="small muted" style="margin-top:12px">El remitente es la llave: un correo desde un correo autorizado o un WhatsApp desde un celular autorizado crea la solicitud de recojo sin exigir ningún texto. Si el mensaje trae líneas «Almacén:», «Bultos:», «Contacto:» o «Fecha:», se leen.</p></div>
+</div>
+{% endblock %}

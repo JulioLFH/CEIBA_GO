@@ -1,0 +1,19 @@
+{% extends "operador/base_ol.html" %}
+{% block titulo %}Bitácora{% endblock %}
+{% block ol %}
+<h1>Bitácora de estados</h1>
+<form class="card fila" method="get">
+  <div style="flex:1"><label for="b-desde">Desde</label><input type="date" name="desde" id="b-desde" value="{{ desde|date:'Y-m-d' }}"></div>
+  <div style="flex:2"><label for="b-q">Buscar</label><input name="q" id="b-q" value="{{ q }}" placeholder="Guía, solicitud, detalle o usuario"></div>
+  <div style="align-self:flex-end"><button class="btn">Filtrar</button></div>
+</form>
+<div class="card tabla"><table>
+  <tr><th>Fecha</th><th>Guía / solicitud</th><th>De</th><th>A</th><th>Tiempo en el anterior</th><th>Quién</th><th>Cómo</th><th>Detalle</th></tr>
+  {% for b in page_obj %}<tr><td class="small">{{ b.fecha|date:"d/m/Y H:i" }}</td>
+    <td>{% if b.guia %}<a href="{% url 'operador:guia' b.guia.pk %}">{{ b.guia.numero_completo }}</a>{% elif b.solicitud %}<a href="{% url 'operador:solicitud' b.solicitud.pk %}">{{ b.solicitud.numero }}</a>{% endif %}</td>
+    <td>{{ b.de|default:"—" }}</td><td>{% if b.estado %}{% include "operador/_estado.html" with e=b.estado %}{% else %}{{ b.a }}{% endif %}</td><td>{{ b.tiempo_anterior }}</td>
+    <td>{% if b.usuario %}{{ b.usuario.get_full_name|default:b.usuario.username }}{% else %}Sistema{% endif %}</td><td>{{ b.get_origen_display }}</td><td>{{ b.detalle }}</td></tr>
+  {% empty %}<tr><td colspan="8" class="vacio">Sin movimientos desde esa fecha.</td></tr>{% endfor %}
+</table></div>
+{% include "operador/_paginas.html" %}
+{% endblock %}

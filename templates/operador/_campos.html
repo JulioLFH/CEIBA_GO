@@ -1,0 +1,5 @@
+{% for e in form.non_field_errors %}<div class="msg error">{{ e }}</div>{% endfor %}
+{% for f in form %}{% if f.is_hidden %}{{ f }}{% else %}
+<div class="campo">{% if f.field.widget.input_type == 'checkbox' %}<label class="ol-check">{{ f }} {{ f.label }}</label>{% else %}<label for="{{ f.id_for_label }}">{{ f.label }}</label>{{ f }}{% endif %}
+{% if f.help_text %}<div class="ol-ayuda">{{ f.help_text }}</div>{% endif %}{% for e in f.errors %}<div class="ol-errores">{{ e }}</div>{% endfor %}</div>
+{% endif %}{% endfor %}

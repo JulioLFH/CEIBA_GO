@@ -1,0 +1,17 @@
+{% extends "operador/base_ol.html" %}
+{% block titulo %}Consolidados{% endblock %}
+{% block ol %}
+<div class="fila entre"><h1>Consolidados</h1><a class="btn chico" href="{% url 'operador:planificacion' %}">Planificación</a></div>
+<form class="card fila" method="get">
+  <select name="estado" style="flex:1" aria-label="Estado"><option value="">Todos (sin anulados)</option>{% for c, n in estados %}<option value="{{ c }}" {% if c == estado %}selected{% endif %}>{{ n }}</option>{% endfor %}</select>
+  <button class="btn">Filtrar</button>
+</form>
+<div class="card tabla"><table>
+  <tr><th>N°</th><th>Destino</th><th class="num">Guías</th><th>Guía consolidada</th><th>Transportista</th><th>Estado</th><th>Creado</th></tr>
+  {% for c in page_obj %}<tr><td><a href="{% url 'operador:consolidado' c.pk %}"><b>{{ c.numero }}</b></a></td><td>{{ c.destino }}</td><td class="num">{{ c.n }}</td>
+    <td>{% if c.guia %}<a href="{% url 'operador:guia_go' c.guia.pk %}">{{ c.guia.numero_completo }}</a>{% else %}—{% endif %}</td><td>{{ c.transportista.razon_social|default:"—" }}</td>
+    <td><span class="chip {% if c.estado == 'CONFIRMADO' or c.estado == 'CERRADO' %}verde{% elif c.estado == 'EN_TRAYECTO' %}azul{% elif c.estado == 'EN_DESTINO' %}morado{% endif %}">{{ c.get_estado_display }}</span></td><td class="small muted">{{ c.creado|date:"d/m/Y H:i" }}</td></tr>
+  {% empty %}<tr><td colspan="7" class="vacio">Sin consolidados.</td></tr>{% endfor %}
+</table></div>
+{% include "operador/_paginas.html" %}
+{% endblock %}

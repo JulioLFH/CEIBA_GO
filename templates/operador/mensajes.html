@@ -1,0 +1,18 @@
+{% extends "operador/base_ol.html" %}
+{% block titulo %}Mensajes entrantes{% endblock %}
+{% block ol %}
+<h1>Mensajes entrantes</h1>
+<p class="small muted">Cada correo o WhatsApp que llegó al buzón de pedidos. Un remitente autorizado de un cliente con crédito o con «Cliente de servicio logístico» crea la solicitud solo; los demás quedan aquí para revisarlos (autorizar el correo o celular en la ficha del cliente, o atender a mano).</p>
+<form class="card fila" method="get">
+  <select name="resultado" style="flex:1" aria-label="Resultado"><option value="PENDIENTE" {% if resultado == 'PENDIENTE' %}selected{% endif %}>Sin solicitud (por revisar)</option><option value="TODOS" {% if resultado == 'TODOS' %}selected{% endif %}>Todos</option>{% for c, n in resultados %}<option value="{{ c }}" {% if c == resultado %}selected{% endif %}>{{ n }}</option>{% endfor %}</select>
+  <button class="btn">Filtrar</button>
+</form>
+<div class="card tabla"><table>
+  <tr><th>Recibido</th><th>Canal</th><th>Remitente</th><th>Asunto / texto</th><th>Resultado</th></tr>
+  {% for m in page_obj %}<tr><td class="small">{{ m.recibido|date:"d/m/Y H:i" }}</td><td>{{ m.get_canal_display }}</td><td>{{ m.remitente }}</td>
+    <td>{% if m.asunto %}<b>{{ m.asunto }}</b><br>{% endif %}<span class="small">{{ m.texto|truncatechars:160 }}</span></td>
+    <td>{% if m.solicitud %}<a href="{% url 'operador:solicitud' m.solicitud.pk %}" class="chip verde">{{ m.solicitud.numero }}</a>{% else %}<span class="chip {% if m.resultado == 'SIN_CREDITO' %}ambar{% else %}rojo{% endif %}">{{ m.get_resultado_display }}</span>{% endif %}</td></tr>
+  {% empty %}<tr><td colspan="5" class="vacio">Sin mensajes.</td></tr>{% endfor %}
+</table></div>
+{% include "operador/_paginas.html" %}
+{% endblock %}

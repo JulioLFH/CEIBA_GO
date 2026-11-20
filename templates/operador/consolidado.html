@@ -1,0 +1,60 @@
+{% extends "operador/base_ol.html" %}
+{% block titulo %}Consolidado {{ c.numero }}{% endblock %}
+{% block ol %}
+<div class="fila entre"><h1>Consolidado {{ c.numero }} · {{ c.destino }} <span class="chip">{{ c.get_estado_display }}</span></h1>
+  <span class="fila">{% if c.guia %}<a class="btn sec chico" href="{% url 'operador:hoja_despacho' c.pk %}" target="_blank">Hoja de despacho (QR)</a>{% endif %}<a class="btn sec chico" href="{% url 'operador:planificacion' %}">‹ Planificación</a></span></div>
+<div class="grid g2">
+  <div class="card"><h2>Guía remitente consolidada</h2>
+    {% if c.guia %}
+      <p>Guía <a href="{% url 'operador:guia_go' c.guia.pk %}"><b>{{ c.guia.numero_completo }}</b></a> · {{ c.guia.fecha|date:"d/m/Y" }} · SUNAT: {{ c.guia.get_sunat_estado_display }}</p>
+      <p class="small">Llegada: {{ c.llegada_direccion }} [{{ c.llegada_ubigeo }}]{% if c.agencia_nombre %} · {{ c.agencia_nombre }}{% if c.agencia_ruc %} ({{ c.agencia_ruc }}){% endif %}{% endif %}</p>
+      <p class="small muted">Lleva {{ c.guia.relacionados.count }} guía(s) de clientes como documentos relacionados.</p>
+    {% elif c.estado == 'ARMANDO' %}
+      <p class="muted">Confirme el grupo para emitir su guía consolidada.</p>
+      <form method="post">{% csrf_token %}<input type="hidden" name="accion" value="confirmar"><button class="btn chico">Confirmar grupo</button></form>
+    {% else %}
+      <form method="post">{% csrf_token %}<input type="hidden" name="accion" value="emitir">
+        <div class="grid g2" style="gap:0 12px">{% include "operador/_campos.html" with form=emitir %}</div>
+        <button class="btn">Emitir guía consolidada</button>
+        <p class="ol-ayuda">Una guía remitente de Go con las {{ guias|length }} guía(s) del grupo como relacionadas. Las guías pasan a En trayecto. Envío a SUNAT: modo simulado por ahora.</p>
+      </form>
+    {% endif %}
+  </div>
+  <div class="card"><h2>Transporte tercero</h2>
+    {% if c.doc_transportista_numero or c.transportista %}
+      <p>{{ c.transportista.razon_social|default:"—" }}{% if c.doc_transportista_numero %} · {{ c.get_doc_transportista_tipo_display }} {{ c.doc_transportista_numero }}{% if c.doc_transportista_fecha %} · {{ c.doc_transportista_fecha|date:"d/m/Y" }}{% endif %}{% else %} · <span class="muted">falta su documento (guía transportista o recibo)</span>{% endif %}</p>
+      <p class="small">{% if c.doc_transportista_peso %}{{ c.doc_transportista_peso|floatformat:2 }} kg · {% endif %}{% if c.doc_transportista_bultos %}{{ c.doc_transportista_bultos }} bulto(s){% endif %}</p>
+    {% endif %}
+    {% if c.estado != 'ARMANDO' and c.estado != 'CERRADO' and c.estado != 'ANULADO' %}
+    <form method="post" enctype="multipart/form-data">{% csrf_token %}<input type="hidden" name="accion" value="transportista">
+      <div class="grid g2" style="gap:0 12px">{% include "operador/_campos.html" with form=transporte %}</div>
+      <button class="btn sec">Guardar documento del transportista</button>
+    </form>{% endif %}
+    {% if c.recibido_en %}<div class="ol-ok" style="margin-top:10px">Recibido en destino el {{ c.recibido_en|date:"d/m/Y H:i" }}{% if c.recibido_por %} por {{ c.recibido_por.get_full_name|default:c.recibido_por.username }}{% endif %}.</div>{% endif %}
+  </div>
+</div>
+<div class="card"><div class="fila entre"><h2>Guías del grupo ({{ guias|length }})</h2><span class="small">Costo del transporte: <b>S/ {{ total_costo|floatformat:2 }}</b></span></div>
+<div class="tabla"><table>
+  <tr><th>Guía</th><th>Remitente</th><th>Destinatario</th><th>Llegada</th><th class="num">Bultos</th><th class="num">Peso</th><th class="num">Costo S/</th><th>Último tramo</th><th>Estado</th></tr>
+  {% for g in guias %}<tr><td><a href="{% url 'operador:guia' g.pk %}">{{ g.numero_completo }}</a></td><td>{{ g.emisor_nombre|default:g.cliente.nombre }}</td><td>{{ g.destinatario_nombre }}</td><td>{{ g.llegada_direccion|truncatechars:40 }}</td><td class="num">{{ g.bultos }}</td><td class="num">{{ g.peso|floatformat:2 }}</td>
+    <td class="num">{% for k, v in costos.items %}{% if k == g.pk %}{{ v|floatformat:2 }}{% endif %}{% endfor %}</td>
+    <td>{% if g.ultimo_tramo %}<a href="{% url 'operador:guia_go' g.ultimo_tramo.pk %}">{{ g.ultimo_tramo.numero_completo }}</a>{% endif %}</td><td>{% include "operador/_estado.html" with e=g.estado %}</td></tr>
+  {% empty %}<tr><td colspan="9" class="vacio">Sin guías.</td></tr>{% endfor %}
+</table></div></div>
+<div class="card"><h2>Costos del transporte</h2>
+  <p class="small muted">Flete, agencia, estiba…: se reparten entre las guías del grupo por peso (o por bultos si no hay pesos).</p>
+  <div class="tabla"><table>
+    {% for l in lineas_costo %}<tr><td>{{ l.descripcion }}</td><td class="num">S/ {{ l.monto|floatformat:2 }}</td><td class="small muted">{{ l.creado|date:"d/m/Y" }}{% if l.usuario %} · {{ l.usuario.username }}{% endif %}</td>
+      <td class="right"><form method="post" data-confirmar="¿Quitar este costo?">{% csrf_token %}<input type="hidden" name="accion" value="quitar_costo"><input type="hidden" name="costo" value="{{ l.pk }}"><button class="btn sec chico">Quitar</button></form></td></tr>
+    {% empty %}<tr><td class="vacio">Sin costos registrados.</td></tr>{% endfor %}
+  </table></div>
+  <form method="post" class="fila" style="margin-top:10px;align-items:flex-end">{% csrf_token %}<input type="hidden" name="accion" value="costo">
+    <div style="flex:2">{% include "operador/_campos.html" with form=costo_form %}</div>
+    <div class="campo"><button class="btn sec">Agregar costo</button></div>
+  </form>
+</div>
+{% if ultimos %}<div class="card"><h2>Guías del último tramo</h2><div class="tabla"><table>
+  {% for gr in ultimos %}<tr><td><a href="{% url 'operador:guia_go' gr.pk %}"><b>{{ gr.numero_completo }}</b></a></td><td>{{ gr.destinatario_nombre }} → {{ gr.llegada_direccion }}</td><td>{% for r in gr.relacionados.all %}<span class="chip">{{ r.tipo }} {{ r.numero }}</span> {% endfor %}</td></tr>{% endfor %}
+</table></div></div>{% endif %}
+{% include "operador/_adjuntos.html" %}
+{% endblock %}

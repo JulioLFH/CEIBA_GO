@@ -1,0 +1,46 @@
+{% extends "operador/base_ol.html" %}
+{% block titulo %}Solicitud {{ sol.numero }}{% endblock %}
+{% block ol %}
+<div class="fila entre"><h1>Solicitud de recojo {{ sol.numero }} <span class="chip {% if sol.estado == 'ASIGNADO' %}ambar{% elif sol.estado == 'ATENDIDO' %}verde{% endif %}">{{ sol.get_estado_display }}</span></h1>
+  <a class="btn sec chico" href="{% url 'operador:solicitudes' %}">‹ Solicitudes</a></div>
+<div class="grid g2">
+  <div class="card"><dl class="ol-dl">
+    <dt>Cliente</dt><dd>{{ sol.cliente.nombre }} ({{ sol.cliente.documento }}) · <a href="{% url 'operador:cliente' sol.cliente.pk %}">ficha logística</a></dd>
+    <dt>Llegó por</dt><dd>{{ sol.get_canal_display }}{% if sol.remitente %} · {{ sol.remitente }}{% endif %} · {{ sol.creado|date:"d/m/Y H:i" }}</dd>
+    <dt>Almacén de origen</dt><dd>{{ sol.almacen|default:"—" }}</dd>
+    <dt>Bultos indicados</dt><dd>{{ sol.bultos|default:"—" }}</dd>
+    <dt>Contacto</dt><dd>{{ sol.contacto|default:"—" }}</dd>
+    <dt>Fecha pedida</dt><dd>{{ sol.fecha_recojo|date:"d/m/Y"|default:"—" }}</dd>
+    <dt>Operador</dt><dd>{% if sol.operador %}{{ sol.operador.get_full_name|default:sol.operador.username }}{% else %}Cualquiera{% endif %}</dd>
+    {% if sol.atendida_en %}<dt>Atendida</dt><dd>{{ sol.atendida_en|date:"d/m/Y H:i" }}{% if sol.atendida_por %} por {{ sol.atendida_por.get_full_name|default:sol.atendida_por.username }}{% endif %}{% if sol.latitud %} · <a href="https://www.google.com/maps/search/?api=1&query={{ sol.latitud }},{{ sol.longitud }}" target="_blank" rel="noopener">GPS</a>{% endif %}</dd>{% endif %}
+  </dl>
+  {% if sol.asunto %}<p class="small" style="margin-top:10px"><b>Asunto:</b> {{ sol.asunto }}</p>{% endif %}
+  {% if sol.mensaje %}<div class="ol-pre" style="margin-top:10px">{{ sol.mensaje }}</div>{% endif %}
+  {% if sol.avisos %}<div class="ol-aviso" style="margin-top:10px;white-space:pre-wrap">{{ sol.avisos }}</div>{% endif %}
+  </div>
+  <div class="card">
+  {% if sol.estado == 'ASIGNADO' %}
+    <form method="post" class="campo">{% csrf_token %}<input type="hidden" name="accion" value="asignar">
+      <label for="s-op">Operador de recojo</label>
+      <div class="ol-en-linea"><select name="operador" id="s-op"><option value="">— Cualquiera —</option>{% for u in operadores %}<option value="{{ u.pk }}"{% if u == sol.operador %} selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>{% endfor %}</select><button class="btn sec chico">Asignar</button></div>
+    </form>
+    <form method="post" enctype="multipart/form-data" class="campo">{% csrf_token %}<input type="hidden" name="accion" value="xml">
+      <label for="s-xml">Cargar el XML de una guía del cliente</label>
+      <div class="ol-en-linea"><input type="file" name="xml" id="s-xml" accept=".xml" required><button class="btn sec chico">Cargar</button></div>
+    </form>
+    <form method="post" class="campo" data-confirmar="¿Anular la solicitud?">{% csrf_token %}<input type="hidden" name="accion" value="anular">
+      <label for="s-mot">Anular</label>
+      <div class="ol-en-linea"><input name="motivo" id="s-mot" placeholder="Motivo de la anulación"><button class="btn rojo chico">Anular</button></div>
+    </form>
+    <p class="small muted">El operador la atiende escaneando las guías en el almacén del cliente.</p>
+  {% else %}<p class="muted">Solicitud cerrada.</p>{% endif %}
+  </div>
+</div>
+<div class="card"><h2>Guías del cliente ({{ guias|length }})</h2><div class="tabla"><table>
+  <tr><th>Guía</th><th>Destinatario</th><th>Destino</th><th class="num">Bultos</th><th class="num">Peso</th><th>Cargada desde</th><th>Estado</th></tr>
+  {% for g in guias %}<tr><td><a href="{% url 'operador:guia' g.pk %}"><b>{{ g.numero_completo }}</b></a>{% if not g.datos_completos %} <span class="chip ambar">datos pendientes</span>{% endif %}</td><td>{{ g.destinatario_nombre }}</td><td>{{ g.destino }}</td><td class="num">{{ g.bultos }}</td><td class="num">{{ g.peso|floatformat:2 }} {{ g.unidad_peso }}</td><td>{{ g.get_origen_datos_display }}</td><td>{% include "operador/_estado.html" with e=g.estado %}</td></tr>
+  {% empty %}<tr><td colspan="7" class="vacio">Aún sin guías: llegan con el XML del correo o al escanear el QR en el recojo.</td></tr>{% endfor %}
+</table></div></div>
+{% include "operador/_adjuntos.html" %}
+{% include "operador/_bitacora.html" %}
+{% endblock %}

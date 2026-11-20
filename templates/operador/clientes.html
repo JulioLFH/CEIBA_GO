@@ -1,0 +1,19 @@
+{% extends "operador/base_ol.html" %}
+{% block titulo %}Clientes del servicio logístico{% endblock %}
+{% block ol %}
+<h1>Clientes del servicio logístico</h1>
+<p class="small muted">Empresas de Ceiba GO. Un cliente con línea de crédito o con la casilla «Cliente de servicio logístico» puede pedir recojos: sus correos y celulares autorizados crean la solicitud sola. El almacén de origen se toma de su ficha.</p>
+<form class="card fila" method="get">
+  <input name="q" value="{{ q }}" placeholder="Razón social o RUC" style="flex:2" aria-label="Buscar">
+  <label class="ol-check" style="margin:0"><input type="checkbox" name="todos" value="1" {% if todos %}checked{% endif %}> Todas las empresas</label>
+  <button class="btn">Buscar</button>
+</form>
+<div class="card tabla"><table>
+  <tr><th>Empresa</th><th>RUC</th><th class="num">Línea de crédito</th><th>Servicio logístico</th><th>Almacén de origen</th><th class="num">Remitentes autorizados</th><th>Puede pedir</th></tr>
+  {% for c in page_obj %}{% with p=c.servicio_logistico %}<tr><td><a href="{% url 'operador:cliente' c.pk %}"><b>{{ c.nombre }}</b></a></td><td>{{ c.documento }}</td><td class="num">{{ c.linea_credito|floatformat:2 }}</td>
+    <td>{% if p.servicio_logistico %}<span class="chip verde">Sí</span>{% else %}—{% endif %}</td><td class="small">{{ p.almacen_direccion|default:"—" }}</td><td class="num">{{ c.n_autorizados }}</td>
+    <td>{% if p and p.habilitado %}<span class="chip verde">Sí</span>{% elif c.linea_credito > 0 and c.user.is_active %}<span class="chip ambar">Falta autorizar remitentes</span>{% else %}<span class="chip">No</span>{% endif %}</td></tr>{% endwith %}
+  {% empty %}<tr><td colspan="7" class="vacio">Ninguna empresa usa aún el servicio. Marque «Todas las empresas» para habilitar una.</td></tr>{% endfor %}
+</table></div>
+{% include "operador/_paginas.html" %}
+{% endblock %}
