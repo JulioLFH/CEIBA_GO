@@ -16,13 +16,13 @@ else:
 
 DEBUG = os.environ.get("DEBUG", "0") == "1"
 ALLOWED_HOSTS = ["*"]
-# Dominio publico (Cloudflare -> IIS sitio CeibaGO -> 127.0.0.1:8040). CSRF_ORIGENES agrega otros, separados por coma.
-CSRF_TRUSTED_ORIGINS = ["https://go.ceiba-tecnologic.com"] + [
+# Dominio publico go.ceiba-tecnologic.com (Cloudflare -> IIS sitio CeibaGO -> 127.0.0.1:8040). CSRF_ORIGENES agrega otros, separados por coma.
+CSRF_TRUSTED_ORIGINS = ["https://go.ceiba-tecnologic.com", "https://ceibago.ceiba-tecnologic.com"] + [
     o for o in os.environ.get("CSRF_ORIGENES", "").split(",") if o]
 # IIS envia X-Forwarded-Proto = https cuando la visita llego por https (ProtoMap en su web.config): asi los links
 # (seguimiento, guias) salen con https://
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-# el dominio real (go.ceiba-tecnologic.com) llega en X-Forwarded-Host: sin esto los links salen con 127.0.0.1:8040
+# el dominio real (go.ceiba-tecnologic.com; el ERP de Go Just In Time está en gojustintime.ceiba-tecnologic.com) llega en X-Forwarded-Host: sin esto los links salen con 127.0.0.1:8040
 USE_X_FORWARDED_HOST = True
 
 INSTALLED_APPS = [
@@ -90,7 +90,9 @@ if _PG.get("PG_BASE"):
             "PASSWORD": _PG.get("PG_CLAVE", ""),
             "HOST": _PG.get("PG_HOST", "127.0.0.1"),
             "PORT": _PG.get("PG_PUERTO", "5432"),
-            "CONN_MAX_AGE": 600,
+            # base remota compartida: cada pedido abre y cierra su conexión (las persistentes, una por hilo, agotaban
+            # las conexiones del servidor)
+            "CONN_MAX_AGE": int(_PG.get("PG_CONN_MAX_AGE", "0")),
             "CONN_HEALTH_CHECKS": True,
             "OPTIONS": {k: v for k, v in {"sslmode": _PG.get("PGSSLMODE"),
                                           "sslrootcert": _PG.get("PGSSLROOTCERT")}.items() if v},

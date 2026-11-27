@@ -10,15 +10,17 @@ accesible desde la red local por la IP de la PC).
 
 Datos de demostración (una sola vez): `.venv\Scripts\python.exe manage.py seed_demo`
 
-| Usuario | Rol | Contraseña |
-|---|---|---|
-| `operador` | Operaciones + admin (`/admin/`) | `ceiba2026` |
-| `cliente` | Persona (boleta) | `ceiba2026` |
-| `empresa` | Empresa con línea de crédito S/ 5,000 (factura) | `ceiba2026` |
-| `agente_lima`, `agente_lima2`, `agente_arequipa`, `agente_cusco`, `agente_trujillo`, `agente_piura` | Agentes por zona | `ceiba2026` |
-| `transporte`, `transporte2` | Empresas de transporte | `ceiba2026` |
+| Usuario | Rol |
+|---|---|
+| `operador` | Operaciones + admin (`/admin/`) |
+| `cliente` | Persona (boleta) |
+| `empresa` | Empresa con línea de crédito S/ 5,000 (factura) |
+| `agente_lima`, `agente_lima2`, `agente_arequipa`, `agente_cusco`, `agente_trujillo`, `agente_piura` | Agentes por zona |
+| `transporte`, `transporte2` | Empresas de transporte |
 
-Cambie estas contraseñas antes de usarlo con clientes reales.
+En una instalación local nueva, `seed_demo` crea estos usuarios con la contraseña de demostración que está en
+`envios/management/commands/seed_demo.py` (solo a los que no existen: no cambia la de los que ya están). En el servidor
+público cada usuario tiene su propia contraseña: no use la de demostración fuera de su PC.
 
 ## Flujo implementado
 
